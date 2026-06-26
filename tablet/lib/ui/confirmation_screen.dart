@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/local/database.dart';
 import '../main.dart';
 import 'active_downtime_screen.dart';
+import 'theme.dart';
+import 'widgets/astemo_logo.dart';
 
 /// Step 2 — Confirmation. "Start downtime for [Equipment]?" with START and
 /// Cancel. Cancel returns to Home immediately.
@@ -14,7 +16,10 @@ class ConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Confirm')),
+      appBar: AppBar(
+        title: const Text('Confirm'),
+        actions: const [AstemoAppBarLogo()],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -37,8 +42,8 @@ class ConfirmationScreen extends StatelessWidget {
               const SizedBox(height: 48),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade600,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AstemoColors.red,
+                  foregroundColor: AstemoColors.white,
                   minimumSize: const Size(280, 96),
                 ),
                 onPressed: () => _start(context),

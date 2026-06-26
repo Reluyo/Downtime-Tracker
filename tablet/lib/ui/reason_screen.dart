@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/local/database.dart';
 import '../main.dart';
 import 'other_note_screen.dart';
+import 'widgets/astemo_logo.dart';
 
 /// Step 4 — Reason. Grid of reason codes for the equipment. Tapping a reason
 /// closes the event. "Other" (requires_note) opens a note screen first.
@@ -35,6 +36,7 @@ class _ReasonScreenState extends State<ReasonScreen> {
         appBar: AppBar(
           title: const Text('What was the reason?'),
           automaticallyImplyLeading: false,
+          actions: const [AstemoAppBarLogo()],
         ),
         body: FutureBuilder<List<CachedReason>>(
           future: _reasonsFuture,

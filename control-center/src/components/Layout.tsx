@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import type { SVGProps } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useLine } from '../lib/LineContext';
+import AstemoLogo from './AstemoLogo';
 import {
   IconEquipment,
   IconHistory,
@@ -37,6 +38,9 @@ export default function Layout({ session }: { session: Session }) {
             <IconSignOut />
             Sign out
           </button>
+          <span className="header-logo">
+            <AstemoLogo />
+          </span>
         </div>
       </header>
 

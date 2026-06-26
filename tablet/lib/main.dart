@@ -8,6 +8,7 @@ import 'data/local/database.dart';
 import 'data/repository.dart';
 import 'services/sync_service.dart';
 import 'ui/home_screen.dart';
+import 'ui/theme.dart';
 
 /// App-wide singletons. Kept simple (no DI framework) for an app this size.
 late final AppDatabase db;
@@ -39,18 +40,7 @@ class PrsaTabletApp extends StatelessWidget {
     return MaterialApp(
       title: 'PRSA Downtime',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: Colors.blue,
-        useMaterial3: true,
-        // Large, high-contrast touch targets for the production floor.
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(160, 96),
-            textStyle:
-                const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
+      theme: astemoDarkTheme(),
       home: const HomeScreen(),
     );
   }

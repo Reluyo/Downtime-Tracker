@@ -6,17 +6,18 @@
    =========================================================================== */
 
 :root {
-  /* Surfaces */
-  --bg: #0b1220;
-  --bg-elev: #111a2b;
-  --panel: #14203a;
-  --panel-2: #182740;
-  --border: #25344f;
+  /* Surfaces — neutral near-black so Astemo Red reads as the single accent */
+  --bg: #0b0b0d;
+  --bg-elev: #131316;
+  --panel: #17171c;
+  --panel-2: #1f1f25;
+  --border: #2c2c34;
 
-  /* Brand */
-  --primary: #14b8a6; /* teal */
-  --primary-dim: #0f766e;
-  --accent: #38bdf8; /* sky blue */
+  /* Brand — Astemo primary palette (Red / White / Black) */
+  --primary: #b6001a; /* Astemo Red */
+  --primary-dim: #8a0014; /* deep red for gradients */
+  --primary-bright: #e11d2e; /* hover / glow */
+  --accent: #ff6b6b; /* light red for links on dark */
 
   /* Status (shared with tablet semantics) */
   --ok: #22c55e; /* synced / normal / closed */
@@ -24,14 +25,14 @@
   --crit: #ef4444; /* error / down / open */
 
   /* Text */
-  --text: #e6edf6;
-  --text-muted: #93a4bd;
-  --text-faint: #5f7393;
+  --text: #f2f3f5;
+  --text-muted: #a0a4ad;
+  --text-faint: #6b6f78;
 
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  --ring: 0 0 0 3px rgba(20, 184, 166, 0.35);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --ring: 0 0 0 3px rgba(182, 0, 26, 0.4);
   --t: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
   font-family: 'Fira Sans', system-ui, -apple-system, sans-serif;
@@ -52,8 +53,8 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(20, 184, 166, 0.08), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(56, 189, 248, 0.06), transparent 55%),
+    radial-gradient(1200px 600px at 80% -10%, rgba(182, 0, 26, 0.1), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(182, 0, 26, 0.05), transparent 55%),
     var(--bg);
 }
 
@@ -104,10 +105,16 @@ a:focus-visible {
 
 /* ===== Login ===== */
 .login-wrap {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
+}
+.login-logo {
+  position: absolute;
+  top: 24px;
+  right: 28px;
 }
 .login-card {
   width: 100%;
@@ -160,13 +167,13 @@ a:focus-visible {
 .btn-primary {
   width: 100%;
   padding: 11px 16px;
-  background: linear-gradient(180deg, var(--primary), var(--primary-dim));
-  color: #042f2a;
+  background: linear-gradient(180deg, var(--primary-bright), var(--primary));
+  color: #ffffff;
   font-weight: 700;
   border: none;
   border-radius: var(--radius-sm);
   transition: filter var(--t), transform var(--t), box-shadow var(--t);
-  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.25);
+  box-shadow: 0 6px 18px rgba(182, 0, 26, 0.35);
 }
 .btn-primary:hover {
   filter: brightness(1.07);
@@ -215,7 +222,7 @@ a:focus-visible {
   transition: color var(--t);
 }
 .btn-link-dark:hover {
-  color: #7dd3fc;
+  color: #ff9d9d;
 }
 .btn-link-dark:disabled {
   color: var(--text-faint);
@@ -230,6 +237,42 @@ a:focus-visible {
 }
 .btn-link-danger:hover {
   color: #fca5a5;
+}
+
+/* ===== Astemo logo ===== */
+.astemo-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+  user-select: none;
+}
+.astemo-logo .astemo-word {
+  font-family: 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+.astemo-logo .astemo-rule {
+  width: 100%;
+  height: 2px;
+  margin: 3px 0;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.astemo-logo .astemo-tag {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.astemo-logo.lg .astemo-word {
+  font-size: 26px;
+}
+.astemo-logo.lg .astemo-tag {
+  font-size: 9px;
 }
 
 /* ===== App shell ===== */
@@ -258,15 +301,22 @@ a:focus-visible {
   font-family: 'Fira Code', monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary);
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  color: #ff8a93;
+  background: rgba(182, 0, 26, 0.16);
+  border: 1px solid rgba(182, 0, 26, 0.4);
   padding: 2px 10px;
   border-radius: 999px;
 }
 .user-email {
   font-size: 13px;
   color: var(--text-muted);
+}
+.header-logo {
+  display: inline-flex;
+  align-items: center;
+  padding-left: 16px;
+  margin-left: 4px;
+  border-left: 1px solid var(--border);
 }
 
 .app-nav {
@@ -298,9 +348,9 @@ a:focus-visible {
   color: var(--text);
 }
 .nav-item.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  text-shadow: 0 0 10px rgba(20, 184, 166, 0.45);
+  color: #ff8a93;
+  border-bottom-color: var(--primary-bright);
+  text-shadow: 0 0 12px rgba(225, 29, 46, 0.5);
 }
 
 .app-main {
@@ -411,7 +461,7 @@ section > h2 {
   transition: background var(--t);
 }
 .data-table tbody tr:hover {
-  background: rgba(56, 189, 248, 0.05);
+  background: rgba(182, 0, 26, 0.06);
 }
 .data-table.compact th,
 .data-table.compact td {
