@@ -1,15 +1,3 @@
-# =============================================================================
-# TO ENABLE: move this file to .github/workflows/tablet-build.yml
-#
-# It could not be committed there automatically because the access token used
-# for this session lacks the GitHub "workflow" scope. To activate CI:
-#   - In GitHub: Add file -> Create new file -> path
-#     ".github/workflows/tablet-build.yml" and paste this content, OR
-#   - move it locally: mkdir -p .github/workflows && \
-#       git mv ci/tablet-build.yml .github/workflows/tablet-build.yml
-#     (push with a token that has the "workflow" scope)
-# =============================================================================
-
 name: Build Tablet APK
 
 # Builds an installable Android APK for the PRSA tablet app so you don't need
