@@ -93,7 +93,7 @@ npx vercel
 - [x] Flutter tablet app — full operator flow (grid → confirm → active → reason → "Other" note)
 - [x] Offline sync (SQLite → Supabase) with sync-status indicator
 - [x] Alert logic (threshold + repeat, bundled tone)
-- [x] CI workflow to build the tablet APK (`.github/workflows/tablet-build.yml`)
+- [x] CI workflow to build the tablet APK (ships at `ci/tablet-build.yml`; move to `.github/workflows/` to activate)
 - [ ] Control center features (history, equipment, reasons, config, reporting)
 - [ ] Vercel deployment
 - [ ] Fire tablet testing (build APK, sideload, validate on device)
