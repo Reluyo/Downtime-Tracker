@@ -173,6 +173,7 @@ function ReasonRow({
       </td>
       <td>
         <span className={reason.is_active ? 'badge closed' : 'badge'}>
+          <span className="dot" />
           {reason.is_active ? 'Active' : 'Inactive'}
         </span>
       </td>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { getConfig, saveConfig } from '../lib/api';
+import { IconCheck } from '../components/Icons';
 
 export default function ConfigPage() {
   const { line } = useLine();
@@ -84,7 +85,11 @@ export default function ConfigPage() {
         <button className="btn-primary" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving…' : 'Save'}
         </button>
-        {saved && <span className="saved-note">Saved ✓</span>}
+        {saved && (
+          <span className="saved-note">
+            <IconCheck /> Saved
+          </span>
+        )}
       </div>
     </section>
   );

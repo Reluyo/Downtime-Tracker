@@ -32,3 +32,6 @@ android/app/release
 # drift generated code is committed? No — regenerate via build_runner
 *.g.dart
 *.drift.dart
+
+# Vendored AI design skill (local tool, not app code)
+.claude/skills/

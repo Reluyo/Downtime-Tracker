@@ -132,6 +132,7 @@ function EquipmentRow({
       </td>
       <td>
         <span className={equipment.is_active ? 'badge closed' : 'badge'}>
+          <span className="dot" />
           {equipment.is_active ? 'Active' : 'Inactive'}
         </span>
       </td>
