@@ -39,23 +39,41 @@ flutter build apk --release
 
 ```
 lib/
-├── main.dart                 App entry: load .env, open db, init Supabase
+├── main.dart                       App entry + service singletons
 ├── config/
-│   ├── env.dart              Typed access to .env values
-│   └── supabase.dart         Supabase client initialization
-├── data/local/
-│   └── database.dart         drift schema: cached config + local event queue
+│   ├── env.dart                    Typed access to .env values
+│   └── supabase.dart               Supabase client initialization
+├── data/
+│   ├── local/database.dart         drift schema: cached config + event queue
+│   └── repository.dart             reference sync + event lifecycle
+├── services/
+│   └── sync_service.dart           connectivity-driven sync + status
 └── ui/
-    └── home_screen.dart      Step 1 home screen (scaffold)
+    ├── home_screen.dart            Step 1: equipment grid + sync indicator
+    ├── confirmation_screen.dart    Step 2: "Start downtime for ...?"
+    ├── active_downtime_screen.dart Step 3: stopwatch + alert logic
+    ├── reason_screen.dart          Step 4: reason grid
+    └── other_note_screen.dart      Step 5: "Other" note (240 chars)
+assets/sounds/alert.wav             Bundled alert tone
 ```
 
-## What's wired vs. to build
+## How it works
 
-**Wired (scaffold):** env loading, Supabase init, drift database with cached
-config tables + offline event queue, home screen with line name and sync-status
-indicator.
+- **Offline-first:** the line's equipment, reason codes, and alert config are
+  cached locally (drift/SQLite) on first online launch, so the operator UI
+  works without connectivity. Events are written locally and pushed to Supabase
+  when online.
+- **One event at a time** (PoC): Home → Confirm → Active → Reason → Home.
+  Cancel on the active screen discards the event after a confirmation dialog.
+- **Alerts:** after `alert_threshold_minutes` the alert tone plays and a dialog
+  appears; "Still Down" resets the timer for the next `alert_repeat_minutes`,
+  "Resolved" goes to the reason screen.
+- **Sync status** indicator on Home: green (synced), amber (pending), red (error).
 
-**To build next:** equipment button grid, confirmation screen, active-downtime
-stopwatch with alert logic (`alert_threshold_minutes` / `alert_repeat_minutes`),
-reason screen with the "Other" note field (240-char limit), and the
-sync service (local SQLite → Supabase with connectivity detection).
+## Build verification
+
+This code was authored without a local Flutter SDK, so it has **not** been
+compiled here. Easiest way to get a buildable APK: the **Build Tablet APK**
+GitHub Actions workflow (`.github/workflows/tablet-build.yml`) runs codegen and
+produces a downloadable APK artifact on every push. For a backend-connected
+APK, add repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
