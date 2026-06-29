@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Admin control center for the PRSA Downtime Tracker",
+  "description": "Admin control center for the Astemo Downtime Tracker",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

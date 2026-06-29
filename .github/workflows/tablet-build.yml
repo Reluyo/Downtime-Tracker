@@ -1,6 +1,6 @@
 name: Build Tablet APK
 
-# Builds an installable Android APK for the PRSA tablet app so you don't need
+# Builds an installable Android APK for the Astemo tablet app so you don't need
 # a local Flutter setup. Download the artifact from the run summary, then
 # sideload it onto the Fire tablet.
 #
@@ -40,6 +40,9 @@ jobs:
       - name: Generate Android platform files
         run: flutter create --platforms=android --project-name prsa_tablet .
 
+      - name: Restore pubspec.yaml
+        run: git checkout pubspec.yaml
+
       - name: Write .env
         run: |
           if [ -n "${{ secrets.SUPABASE_URL }}" ]; then
@@ -51,6 +54,13 @@ jobs:
           else
             cp .env.example .env
           fi
+
+      - name: Verify .env
+        run: |
+          echo ".env file size: $(wc -c < .env) bytes"
+          echo ".env line count: $(wc -l < .env) lines"
+          grep -c 'SUPABASE_URL' .env && echo "SUPABASE_URL present" || echo "SUPABASE_URL MISSING"
+          grep -c 'SUPABASE_ANON_KEY' .env && echo "SUPABASE_ANON_KEY present" || echo "SUPABASE_ANON_KEY MISSING"
 
       - name: Install dependencies
         run: flutter pub get

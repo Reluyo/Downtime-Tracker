@@ -44,7 +44,7 @@ export default function Layout({ session }: { session: Session }) {
       <header className={styles.appHeader}>
         <div className={styles.headerLeft}>
           <span className="brand-dot" />
-          <h1>PRSA Downtime</h1>
+          <h1>Astemo Downtime</h1>
           {line && <span className={styles.lineChip}>{line.short_name}</span>}
         </div>
         <div className={styles.headerRight}>

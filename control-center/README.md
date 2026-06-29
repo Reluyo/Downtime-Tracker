@@ -1,6 +1,6 @@
-# PRSA Downtime — Control Center
+# Astemo Downtime — Control Center
 
-Admin web app (React + Vite + TypeScript) for the PRSA Downtime Tracker.
+Admin web app (React + Vite + TypeScript) for the Astemo Downtime Tracker.
 Connects to the shared Supabase backend.
 
 ## Setup

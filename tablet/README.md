@@ -1,4 +1,4 @@
-# PRSA Downtime — Tablet App
+# Astemo Downtime — Tablet App
 
 Operator-facing Flutter app for logging downtime, deployed on Amazon Fire
 tablets. Offline-first: events are written to local SQLite (via `drift`) and
