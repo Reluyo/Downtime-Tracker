@@ -51,7 +51,7 @@ class PrsaTabletApp extends StatelessWidget {
       repository: repository,
       syncService: syncService,
       child: MaterialApp(
-        title: 'PRSA Downtime',
+        title: 'Astemo Downtime',
         debugShowCheckedModeBanner: false,
         theme: astemoDarkTheme(),
         home: const _AppShell(),

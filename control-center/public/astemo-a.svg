@@ -1,4 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 800" fill="#c8102e">
-  <path d="M350 0L0 800h150l55-155h290l55 155h150L350 0zm0 220l110 310H240L350 220z"/>
-  <path d="M150 800c0 0 0-80 55-130 40-36 95-50 145-50" fill="#c8102e" opacity="0.85"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 820">
+  <!-- Outer A shape with curved bottom-left -->
+  <path d="
+    M350 0
+    L700 820
+    L560 820
+    L468 580
+    L232 580
+    L165 760
+    Q175 720 230 700
+    Q310 670 390 690
+    L390 820
+    L0 820
+    Z
+  " fill="#c8102e"/>
+  <!-- Inner triangle cutout -->
+  <path d="
+    M350 195
+    L268 440
+    L432 440
+    Z
+  " fill="white"/>
 </svg>
