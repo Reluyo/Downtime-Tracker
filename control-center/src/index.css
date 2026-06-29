@@ -605,9 +605,15 @@ section > h2 {
   border-radius: var(--radius);
   padding: 16px;
 }
+.report-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
 .report-card h3 {
   font-size: 14px;
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--text);
 }
 .report-card .data-table {

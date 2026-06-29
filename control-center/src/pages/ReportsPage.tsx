@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { getEvents } from '../lib/api';
 import type { DowntimeEventRow } from '../types';
-import { endOfDayIso, formatDuration, localDateKey, startOfDayIso } from '../lib/format';
+import { downloadCsv, endOfDayIso, formatDuration, localDateKey, startOfDayIso } from '../lib/format';
 
 interface Bucket {
   key: string;
@@ -86,6 +86,19 @@ export default function ReportsPage() {
 
   const grandTotal = events.reduce((sum, e) => sum + (e.duration_seconds ?? 0), 0);
 
+  function exportAll() {
+    const headers = ['Equipment', 'Reason', 'Note', 'Started', 'Ended', 'Duration (s)'];
+    const rows = events.map((e) => [
+      e.equipment_name,
+      e.reason_label ?? '',
+      e.note ?? '',
+      e.started_at,
+      e.ended_at ?? '',
+      String(e.duration_seconds ?? ''),
+    ]);
+    downloadCsv(`downtime-${startDate}-to-${endDate}.csv`, headers, rows);
+  }
+
   if (!line) return <p>Loading line…</p>;
 
   return (
@@ -101,6 +114,9 @@ export default function ReportsPage() {
           To
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </label>
+        <button className="btn-secondary" onClick={exportAll} disabled={events.length === 0}>
+          Export CSV
+        </button>
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -125,9 +141,27 @@ export default function ReportsPage() {
 }
 
 function ReportTable({ title, buckets }: { title: string; buckets: Bucket[] }) {
+  const columnName = title.replace('By ', '');
+
+  function exportTable() {
+    const headers = [columnName, 'Events', 'Downtime (s)', 'Downtime'];
+    const rows = buckets.map((b) => [
+      b.label,
+      String(b.count),
+      String(b.totalSeconds),
+      formatDuration(b.totalSeconds),
+    ]);
+    downloadCsv(`downtime-${columnName.toLowerCase().replace(/\s+/g, '-')}.csv`, headers, rows);
+  }
+
   return (
     <div className="report-card">
-      <h3>{title}</h3>
+      <div className="report-card-header">
+        <h3>{title}</h3>
+        <button className="btn-link-dark" onClick={exportTable} disabled={buckets.length === 0}>
+          CSV
+        </button>
+      </div>
       <table className="data-table compact">
         <thead>
           <tr>

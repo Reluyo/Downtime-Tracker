@@ -35,3 +35,17 @@ export function endOfDayIso(dateStr: string): string {
 export function startOfDayIso(dateStr: string): string {
   return new Date(`${dateStr}T00:00:00.000`).toISOString();
 }
+
+/** Trigger a CSV file download in the browser. */
+export function downloadCsv(filename: string, headers: string[], rows: string[][]) {
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [headers.map(escape).join(',')];
+  for (const row of rows) lines.push(row.map(escape).join(','));
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
