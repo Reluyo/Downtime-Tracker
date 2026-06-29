@@ -29,6 +29,12 @@ export const IconEquipment = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconLines = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 6h18M3 12h18M3 18h18" />
+  </svg>
+);
+
 export const IconTag = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M12.6 2.6a2 2 0 0 0-1.4-.6H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.2 8.2a2 2 0 0 0 2.8 0l6.8-6.8a2 2 0 0 0 0-2.8Z" />

@@ -49,6 +49,25 @@ export async function getLines(): Promise<Line[]> {
   return data ?? [];
 }
 
+export async function createLine(input: { name: string; short_name: string }): Promise<Line> {
+  const { data, error } = await supabase.from('lines').insert(input).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateLine(
+  id: string,
+  patch: Partial<Pick<Line, 'name' | 'short_name'>>,
+): Promise<void> {
+  const { error } = await supabase.from('lines').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteLine(id: string): Promise<void> {
+  const { error } = await supabase.from('lines').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ---------------------------------------------------------------------------
 // Equipment
 // ---------------------------------------------------------------------------

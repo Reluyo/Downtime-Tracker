@@ -9,6 +9,7 @@ import ErrorBoundary from './ErrorBoundary';
 import {
   IconEquipment,
   IconHistory,
+  IconLines,
   IconReports,
   IconSignOut,
   IconSliders,
@@ -24,6 +25,7 @@ const NAV: {
   adminOnly?: boolean;
 }[] = [
   { to: '/history', label: 'History', Icon: IconHistory },
+  { to: '/lines', label: 'Lines', Icon: IconLines, adminOnly: true },
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
   { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
@@ -32,7 +34,7 @@ const NAV: {
 ];
 
 export default function Layout({ session }: { session: Session }) {
-  const { line } = useLine();
+  const { lines, line, setLineId } = useLine();
   const { isAdmin } = useRole();
 
   const visibleNav = NAV.filter((n) => !n.adminOnly || isAdmin);
@@ -43,7 +45,19 @@ export default function Layout({ session }: { session: Session }) {
         <div className={styles.headerLeft}>
           <span className="brand-dot" />
           <h1>PRSA Downtime</h1>
-          {line && <span className={styles.lineChip}>{line.short_name}</span>}
+          {lines.length > 1 ? (
+            <select
+              className={styles.lineSelect}
+              value={line?.id ?? ''}
+              onChange={(e) => setLineId(e.target.value)}
+            >
+              {lines.map((l) => (
+                <option key={l.id} value={l.id}>{l.short_name}</option>
+              ))}
+            </select>
+          ) : (
+            line && <span className={styles.lineChip}>{line.short_name}</span>
+          )}
         </div>
         <div className={styles.headerRight}>
           <span className={styles.userEmail}>{session.user.email}</span>

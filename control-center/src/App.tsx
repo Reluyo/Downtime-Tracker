@@ -12,6 +12,7 @@ import ReasonsPage from './pages/ReasonsPage';
 import ConfigPage from './pages/ConfigPage';
 import ReportsPage from './pages/ReportsPage';
 import UsersPage from './pages/UsersPage';
+import LinesPage from './pages/LinesPage';
 
 /** Guard that redirects viewers away from admin-only routes. */
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -78,6 +79,14 @@ export default function App() {
                 element={
                   <AdminRoute>
                     <UsersPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/lines"
+                element={
+                  <AdminRoute>
+                    <LinesPage />
                   </AdminRoute>
                 }
               />
