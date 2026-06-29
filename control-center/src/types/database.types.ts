@@ -329,6 +329,10 @@ export type Database = {
           started_at: string
         }[]
       }
+      get_my_role: {
+        Args: Record<string, never>
+        Returns: string
+      }
       is_admin: {
         Args: Record<string, never>
         Returns: boolean

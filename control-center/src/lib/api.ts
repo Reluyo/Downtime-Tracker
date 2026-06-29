@@ -289,14 +289,10 @@ export async function deleteEvent(id: string): Promise<void> {
 // User roles
 // ---------------------------------------------------------------------------
 
-export async function getUserRole(userId: string): Promise<'admin' | 'viewer'> {
-  const { data, error } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .maybeSingle();
+export async function getUserRole(_userId: string): Promise<'admin' | 'viewer'> {
+  const { data, error } = await supabase.rpc('get_my_role');
   if (error) throw error;
-  return (data?.role as 'admin' | 'viewer') ?? 'viewer';
+  return (data as 'admin' | 'viewer') ?? 'viewer';
 }
 
 // ---------------------------------------------------------------------------
