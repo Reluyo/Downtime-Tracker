@@ -19,13 +19,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<CachedEquipmentData>> _equipmentFuture;
+  Set<String> _activeDownIds = {};
 
   @override
   void initState() {
     super.initState();
     _load();
-    // Reload the grid when a background sync changes state (e.g. first sync
-    // populates the cache).
     syncService.addListener(_onSyncChanged);
   }
 
@@ -41,6 +40,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _load() {
     _equipmentFuture = repo.activeEquipment();
+    repo.activeDowntimeEquipmentIds().then((ids) {
+      if (mounted) setState(() => _activeDownIds = ids);
+    });
   }
 
   Future<void> _refresh() async {
@@ -102,9 +104,26 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: equipment.length,
               itemBuilder: (context, i) {
                 final e = equipment[i];
+                final isDown = _activeDownIds.contains(e.id);
                 return ElevatedButton(
-                  onPressed: () => _onEquipmentTap(e),
-                  child: Text(e.name, textAlign: TextAlign.center),
+                  style: isDown
+                      ? ElevatedButton.styleFrom(
+                          backgroundColor: AstemoColors.error.withValues(alpha: 0.2),
+                          side: const BorderSide(color: AstemoColors.error, width: 2),
+                        )
+                      : null,
+                  onPressed: isDown ? null : () => _onEquipmentTap(e),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(e.name, textAlign: TextAlign.center),
+                      if (isDown)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Text('DOWN', style: TextStyle(color: AstemoColors.error, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
                 );
               },
             );
@@ -131,6 +150,15 @@ class _SyncIndicator extends StatelessWidget {
 
   final SyncStatus status;
 
+  String _lastSyncLabel() {
+    final t = syncService.lastSyncAt;
+    if (t == null) return '';
+    final diff = DateTime.now().difference(t);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    return '${diff.inHours}h ago';
+  }
+
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (status) {
@@ -138,11 +166,16 @@ class _SyncIndicator extends StatelessWidget {
       SyncStatus.pending => (AstemoColors.warn, 'Pending'),
       SyncStatus.error => (AstemoColors.error, 'Sync error'),
     };
+    final lastSync = _lastSyncLabel();
     return Row(
       children: [
         Icon(Icons.circle, color: color, size: 14),
         const SizedBox(width: 6),
         Text(label),
+        if (lastSync.isNotEmpty) ...[
+          const SizedBox(width: 6),
+          Text('· $lastSync', style: TextStyle(fontSize: 12, color: Colors.white54)),
+        ],
       ],
     );
   }

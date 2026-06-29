@@ -113,6 +113,14 @@ class DowntimeRepository {
     return db.select(db.cachedConfig).getSingleOrNull();
   }
 
+  /// Equipment IDs that currently have an open (in-progress) event.
+  Future<Set<String>> activeDowntimeEquipmentIds() async {
+    final rows = await (db.select(db.localEvents)
+          ..where((t) => t.endedAt.isNull()))
+        .get();
+    return rows.map((r) => r.equipmentId).toSet();
+  }
+
   // ---------------------------------------------------------------------------
   // Event lifecycle
   // ---------------------------------------------------------------------------

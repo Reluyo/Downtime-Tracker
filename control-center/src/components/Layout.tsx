@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useLine } from '../lib/LineContext';
 import AstemoLogo from './AstemoLogo';
 import {
+  IconDashboard,
   IconEquipment,
   IconHistory,
   IconReports,
@@ -14,6 +15,7 @@ import {
 } from './Icons';
 
 const NAV: { to: string; label: string; Icon: (p: SVGProps<SVGSVGElement>) => JSX.Element }[] = [
+  { to: '/dashboard', label: 'Dashboard', Icon: IconDashboard },
   { to: '/history', label: 'History', Icon: IconHistory },
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag },

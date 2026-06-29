@@ -16,9 +16,13 @@ class SyncService extends ChangeNotifier {
   final DowntimeRepository _repo;
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _sub;
+  Timer? _periodicTimer;
 
   SyncStatus _status = SyncStatus.pending;
   SyncStatus get status => _status;
+
+  DateTime? _lastSyncAt;
+  DateTime? get lastSyncAt => _lastSyncAt;
 
   bool _syncing = false;
 
@@ -29,6 +33,7 @@ class SyncService extends ChangeNotifier {
         syncNow();
       }
     });
+    _periodicTimer = Timer.periodic(const Duration(minutes: 5), (_) => syncNow());
     await syncNow();
   }
 
@@ -53,6 +58,7 @@ class SyncService extends ChangeNotifier {
         await _repo.pushEvent(e);
       }
 
+      _lastSyncAt = DateTime.now();
       await _updateStatusFromPending();
     } catch (_) {
       _set(SyncStatus.error);
@@ -76,6 +82,7 @@ class SyncService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _periodicTimer?.cancel();
     _sub?.cancel();
     super.dispose();
   }

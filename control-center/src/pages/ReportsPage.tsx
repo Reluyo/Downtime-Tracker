@@ -142,6 +142,8 @@ export default function ReportsPage() {
 
 function ReportTable({ title, buckets }: { title: string; buckets: Bucket[] }) {
   const columnName = title.replace('By ', '');
+  const [view, setView] = useState<'table' | 'chart'>('chart');
+  const maxSeconds = buckets.length > 0 ? buckets[0].totalSeconds : 0;
 
   function exportTable() {
     const headers = [columnName, 'Events', 'Downtime (s)', 'Downtime'];
@@ -158,35 +160,61 @@ function ReportTable({ title, buckets }: { title: string; buckets: Bucket[] }) {
     <div className="report-card">
       <div className="report-card-header">
         <h3>{title}</h3>
-        <button className="btn-link-dark" onClick={exportTable} disabled={buckets.length === 0}>
-          CSV
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className={`btn-link-dark${view === 'chart' ? '' : ' btn-link-dim'}`}
+            onClick={() => setView('chart')}
+          >
+            Chart
+          </button>
+          <button
+            className={`btn-link-dark${view === 'table' ? '' : ' btn-link-dim'}`}
+            onClick={() => setView('table')}
+          >
+            Table
+          </button>
+          <button className="btn-link-dark" onClick={exportTable} disabled={buckets.length === 0}>
+            CSV
+          </button>
+        </div>
       </div>
-      <table className="data-table compact">
-        <thead>
-          <tr>
-            <th>{title.replace('By ', '')}</th>
-            <th style={{ width: 70 }}>Events</th>
-            <th style={{ width: 120 }}>Downtime</th>
-          </tr>
-        </thead>
-        <tbody>
-          {buckets.length === 0 && (
+      {buckets.length === 0 ? (
+        <p className="empty-state">No data</p>
+      ) : view === 'chart' ? (
+        <div className="bar-chart">
+          {buckets.map((b) => {
+            const pct = maxSeconds > 0 ? (b.totalSeconds / maxSeconds) * 100 : 0;
+            return (
+              <div key={b.key} className="bar-row">
+                <span className="bar-label" title={b.label}>{b.label}</span>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="bar-value mono">{formatDuration(b.totalSeconds)}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <table className="data-table compact">
+          <thead>
             <tr>
-              <td colSpan={3} className="empty">
-                No data
-              </td>
+              <th>{columnName}</th>
+              <th style={{ width: 70 }}>Events</th>
+              <th style={{ width: 120 }}>Downtime</th>
             </tr>
-          )}
-          {buckets.map((b) => (
-            <tr key={b.key}>
-              <td>{b.label}</td>
-              <td>{b.count}</td>
-              <td>{formatDuration(b.totalSeconds)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {buckets.map((b) => (
+              <tr key={b.key}>
+                <td>{b.label}</td>
+                <td>{b.count}</td>
+                <td>{formatDuration(b.totalSeconds)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

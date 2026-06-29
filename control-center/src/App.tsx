@@ -5,6 +5,7 @@ import { supabase } from './lib/supabaseClient';
 import { LineProvider } from './lib/LineContext';
 import Login from './components/Login';
 import Layout from './components/Layout';
+import DashboardPage from './pages/DashboardPage';
 import HistoryPage from './pages/HistoryPage';
 import EquipmentPage from './pages/EquipmentPage';
 import ReasonsPage from './pages/ReasonsPage';
@@ -38,12 +39,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<Layout session={session} />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/equipment" element={<EquipmentPage />} />
             <Route path="/reasons" element={<ReasonsPage />} />
             <Route path="/config" element={<ConfigPage />} />
             <Route path="/reports" element={<ReportsPage />} />
-            <Route path="*" element={<Navigate to="/history" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>
