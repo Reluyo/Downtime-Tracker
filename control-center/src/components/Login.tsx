@@ -29,7 +29,7 @@ export default function Login() {
       <form className={styles.loginCard} onSubmit={handleSubmit}>
         <div className={styles.brandMark}>
           <span className="brand-dot" />
-          <h1>PRSA Downtime</h1>
+          <h1>Astemo Downtime</h1>
         </div>
         <p className={styles.subtitle}>Control Center — admin sign in</p>
 
