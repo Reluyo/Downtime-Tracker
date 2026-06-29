@@ -8,6 +8,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../data/local/database.dart';
 import '../main.dart';
 import 'reason_screen.dart';
+import 'theme.dart';
+import 'widgets/astemo_logo.dart';
 
 /// Step 3 — Active Downtime. Stopwatch counting up, RESOLVED + Cancel.
 ///
@@ -143,7 +145,7 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
             child: const Text('Back', style: TextStyle(fontSize: 18)),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: AstemoColors.error),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Discard', style: TextStyle(fontSize: 18)),
           ),
@@ -179,12 +181,13 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
         appBar: AppBar(
           title: Text(widget.equipment.name),
           automaticallyImplyLeading: false,
+          actions: const [AstemoAppBarLogo()],
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('DOWN', style: TextStyle(fontSize: 20, color: Colors.red.shade700, letterSpacing: 4)),
+              const Text('DOWN', style: TextStyle(fontSize: 20, color: AstemoColors.red, letterSpacing: 4, fontWeight: FontWeight.w700)),
               const SizedBox(height: 16),
               Text(
                 _formatHms(_elapsed),
@@ -197,8 +200,8 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
               const SizedBox(height: 56),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AstemoColors.ok,
+                  foregroundColor: AstemoColors.black,
                   minimumSize: const Size(280, 96),
                 ),
                 onPressed: _goToReason,

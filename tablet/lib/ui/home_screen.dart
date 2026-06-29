@@ -5,6 +5,8 @@ import '../data/local/database.dart';
 import '../main.dart';
 import '../services/sync_service.dart';
 import 'confirmation_screen.dart';
+import 'theme.dart';
+import 'widgets/astemo_logo.dart';
 
 /// Step 1 — Home. Shows the line name, a sync-status indicator, and a grid of
 /// large buttons (one per active equipment).
@@ -56,9 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
             animation: syncService,
             builder: (_, __) => Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: _SyncIndicator(status: syncService.status),
+              child: Center(child: _SyncIndicator(status: syncService.status)),
             ),
           ),
+          const AstemoAppBarLogo(),
         ],
       ),
       body: RefreshIndicator(
@@ -131,9 +134,9 @@ class _SyncIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (status) {
-      SyncStatus.synced => (Colors.green, 'Synced'),
-      SyncStatus.pending => (Colors.amber, 'Pending'),
-      SyncStatus.error => (Colors.red, 'Sync error'),
+      SyncStatus.synced => (AstemoColors.ok, 'Synced'),
+      SyncStatus.pending => (AstemoColors.warn, 'Pending'),
+      SyncStatus.error => (AstemoColors.error, 'Sync error'),
     };
     return Row(
       children: [

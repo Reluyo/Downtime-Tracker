@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import AstemoLogo from './AstemoLogo';
 
 /**
  * Admin login via Supabase Auth (email + password).
@@ -21,6 +22,9 @@ export default function Login() {
 
   return (
     <div className="login-wrap">
+      <span className="login-logo">
+        <AstemoLogo />
+      </span>
       <form className="login-card" onSubmit={handleSubmit}>
         <div className="brand-mark">
           <span className="brand-dot" />

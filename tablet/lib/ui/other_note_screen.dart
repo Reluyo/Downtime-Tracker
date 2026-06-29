@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'theme.dart';
+import 'widgets/astemo_logo.dart';
+
 /// Step 5 — "Other" note. Free-text up to 240 chars with a live counter.
 /// Pops with the trimmed note string on SUBMIT, or null on Back.
 class OtherNoteScreen extends StatefulWidget {
@@ -31,7 +34,10 @@ class _OtherNoteScreenState extends State<OtherNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Describe the reason')),
+      appBar: AppBar(
+        title: const Text('Describe the reason'),
+        actions: const [AstemoAppBarLogo()],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -53,8 +59,8 @@ class _OtherNoteScreenState extends State<OtherNoteScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                foregroundColor: Colors.white,
+                backgroundColor: AstemoColors.ok,
+                foregroundColor: AstemoColors.black,
                 minimumSize: const Size.fromHeight(80),
               ),
               onPressed: _canSubmit
