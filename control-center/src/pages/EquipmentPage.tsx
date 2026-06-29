@@ -4,7 +4,7 @@ import { createEquipment, getEquipment, updateEquipment } from '../lib/api';
 import type { Equipment } from '../lib/api';
 
 export default function EquipmentPage() {
-  const { line } = useLine();
+  const { lines, line, setLineId } = useLine();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,22 @@ export default function EquipmentPage() {
 
   return (
     <section>
-      <h2>Equipment — {line.short_name}</h2>
+      <h2>
+        Equipment —{' '}
+        {lines.length > 1 ? (
+          <select
+            className="line-select-inline"
+            value={line.id}
+            onChange={(e) => setLineId(e.target.value)}
+          >
+            {lines.map((l) => (
+              <option key={l.id} value={l.id}>{l.short_name}</option>
+            ))}
+          </select>
+        ) : (
+          line.short_name
+        )}
+      </h2>
       {error && <div className="error">{error}</div>}
 
       <div className="add-row">

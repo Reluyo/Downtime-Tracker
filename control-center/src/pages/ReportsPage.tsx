@@ -79,8 +79,9 @@ export default function ReportsPage() {
       const start = startDate ? startOfDayIso(startDate) : undefined;
       const end = endDate ? endOfDayIso(endDate) : undefined;
       const events = await getAllEvents({ lineId: line.id, startDate: start, endDate: end });
-      const headers = ['Equipment', 'Reason', 'Note', 'Started', 'Ended', 'Duration (s)'];
+      const headers = ['Line', 'Equipment', 'Reason', 'Note', 'Started', 'Ended', 'Duration (s)'];
       const rows = events.map((e) => [
+        line.short_name,
         e.equipment_name,
         e.reason_label ?? '',
         e.note ?? '',
@@ -134,6 +135,7 @@ export default function ReportsPage() {
             <ReportTable
               title="By Equipment"
               showBars
+              lineName={line.short_name}
               rows={byEquipment.map((b) => ({
                 key: b.equipment_id,
                 label: b.equipment_name,
@@ -144,6 +146,7 @@ export default function ReportsPage() {
             <ReportTable
               title="By Reason Code"
               showBars
+              lineName={line.short_name}
               rows={byReason.map((b) => ({
                 key: b.reason_id,
                 label: b.reason_label || '(no reason)',
@@ -153,6 +156,7 @@ export default function ReportsPage() {
             />
             <ReportTable
               title="By Day"
+              lineName={line.short_name}
               rows={byDay.map((b) => ({
                 key: b.day,
                 label: b.day,
@@ -174,12 +178,13 @@ interface TableRow {
   totalSeconds: number;
 }
 
-function ReportTable({ title, rows, showBars }: { title: string; rows: TableRow[]; showBars?: boolean }) {
+function ReportTable({ title, rows, showBars, lineName }: { title: string; rows: TableRow[]; showBars?: boolean; lineName: string }) {
   const columnName = title.replace('By ', '');
 
   function exportTable() {
-    const headers = [columnName, 'Events', 'Downtime (s)', 'Downtime'];
+    const headers = ['Line', columnName, 'Events', 'Downtime (s)', 'Downtime'];
     const csvRows = rows.map((b) => [
+      lineName,
       b.label,
       String(b.count),
       String(b.totalSeconds),

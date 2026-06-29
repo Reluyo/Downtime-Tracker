@@ -633,6 +633,24 @@ section > h2 {
   margin-bottom: 14px;
 }
 
+/* ===== Inline line selector ===== */
+.line-select-inline {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: #ff8a93;
+  background: rgba(182, 0, 26, 0.16);
+  border: 1px solid rgba(182, 0, 26, 0.4);
+  padding: 2px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+}
+.line-select-inline option {
+  background: var(--bg);
+  color: var(--text);
+}
+
 /* ===== Motion ===== */
 @keyframes pulse {
   0%,

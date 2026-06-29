@@ -9,6 +9,7 @@ import ErrorBoundary from './ErrorBoundary';
 import {
   IconEquipment,
   IconHistory,
+  IconLines,
   IconReports,
   IconSignOut,
   IconSliders,
@@ -24,6 +25,7 @@ const NAV: {
   adminOnly?: boolean;
 }[] = [
   { to: '/history', label: 'History', Icon: IconHistory },
+  { to: '/lines', label: 'Lines', Icon: IconLines, adminOnly: true },
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
   { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
