@@ -90,10 +90,10 @@ npx vercel
 - [x] Supabase schema and seed data (applied + committed in `/supabase/migrations`)
 - [x] Monorepo scaffold (`/tablet`, `/control-center`)
 - [x] React control center scaffold (Supabase client + auth wired, builds clean)
-- [x] Flutter tablet app scaffold (drift + Supabase wired; needs `flutter create .` + codegen)
-- [ ] Tablet operator flow (equipment grid → confirm → active → reason)
-- [ ] Offline sync (SQLite → Supabase)
-- [ ] Alert logic
+- [x] Flutter tablet app — full operator flow (grid → confirm → active → reason → "Other" note)
+- [x] Offline sync (SQLite → Supabase) with sync-status indicator
+- [x] Alert logic (threshold + repeat, bundled tone)
+- [x] CI workflow to build the tablet APK (`.github/workflows/tablet-build.yml`)
 - [ ] Control center features (history, equipment, reasons, config, reporting)
 - [ ] Vercel deployment
-- [ ] Fire tablet testing
+- [ ] Fire tablet testing (build APK, sideload, validate on device)
