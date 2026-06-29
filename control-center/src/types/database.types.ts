@@ -201,12 +201,83 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          user_id: string
+          role: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          role: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          role?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      downtime_by_day: {
+        Args: {
+          p_line_id: string
+          p_start: string
+          p_end: string
+          p_timezone?: string
+        }
+        Returns: {
+          day: string
+          total_seconds: number
+          event_count: number
+        }[]
+      }
+      downtime_by_equipment: {
+        Args: {
+          p_line_id: string
+          p_start: string
+          p_end: string
+        }
+        Returns: {
+          equipment_id: string
+          equipment_name: string
+          total_seconds: number
+          event_count: number
+        }[]
+      }
+      downtime_by_reason: {
+        Args: {
+          p_line_id: string
+          p_start: string
+          p_end: string
+        }
+        Returns: {
+          reason_id: string
+          reason_label: string
+          total_seconds: number
+          event_count: number
+        }[]
+      }
+      downtime_summary: {
+        Args: {
+          p_line_id: string
+          p_start: string
+          p_end: string
+        }
+        Returns: {
+          total_seconds: number
+          event_count: number
+        }[]
+      }
+      is_admin: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

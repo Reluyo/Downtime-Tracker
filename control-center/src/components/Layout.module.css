@@ -1,0 +1,83 @@
+/* ===== App shell ===== */
+.appHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 24px;
+  background: rgba(11, 18, 32, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.headerLeft,
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.appHeader h1 {
+  font-size: 16px;
+  margin: 0;
+}
+.lineChip {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff8a93;
+  background: rgba(182, 0, 26, 0.16);
+  border: 1px solid rgba(182, 0, 26, 0.4);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.userEmail {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.headerLogo {
+  display: inline-flex;
+  align-items: center;
+  padding-left: 16px;
+  margin-left: 4px;
+  border-left: 1px solid var(--border);
+}
+
+.appNav {
+  display: flex;
+  gap: 2px;
+  padding: 0 16px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.navItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color var(--t), border-color var(--t);
+}
+.navItem svg {
+  width: 17px;
+  height: 17px;
+}
+.navItem:hover {
+  color: var(--text);
+}
+.navItemActive {
+  color: #ff8a93;
+  border-bottom-color: var(--primary-bright);
+  text-shadow: 0 0 12px rgba(225, 29, 46, 0.5);
+}
+
+.appMain {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 24px;
+}

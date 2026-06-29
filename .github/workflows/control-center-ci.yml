@@ -1,0 +1,39 @@
+name: Control Center CI
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "control-center/**"
+      - ".github/workflows/control-center-ci.yml"
+  pull_request:
+    paths:
+      - "control-center/**"
+  workflow_dispatch:
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: control-center
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: control-center/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder_key_for_build_check

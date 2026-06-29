@@ -3,7 +3,9 @@ import type { Session } from '@supabase/supabase-js';
 import type { SVGProps } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useLine } from '../lib/LineContext';
+import { useRole } from '../lib/RoleContext';
 import AstemoLogo from './AstemoLogo';
+import ErrorBoundary from './ErrorBoundary';
 import {
   IconEquipment,
   IconHistory,
@@ -12,44 +14,55 @@ import {
   IconSliders,
   IconTag,
 } from './Icons';
+import styles from './Layout.module.css';
 
-const NAV: { to: string; label: string; Icon: (p: SVGProps<SVGSVGElement>) => JSX.Element }[] = [
+const NAV: {
+  to: string;
+  label: string;
+  Icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
+  adminOnly?: boolean;
+}[] = [
   { to: '/history', label: 'History', Icon: IconHistory },
-  { to: '/equipment', label: 'Equipment', Icon: IconEquipment },
-  { to: '/reasons', label: 'Reason Codes', Icon: IconTag },
-  { to: '/config', label: 'Configuration', Icon: IconSliders },
+  { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
+  { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
+  { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
   { to: '/reports', label: 'Reports', Icon: IconReports },
 ];
 
 export default function Layout({ session }: { session: Session }) {
   const { line } = useLine();
+  const { isAdmin } = useRole();
+
+  const visibleNav = NAV.filter((n) => !n.adminOnly || isAdmin);
 
   return (
     <div className="layout">
-      <header className="app-header">
-        <div className="header-left">
+      <header className={styles.appHeader}>
+        <div className={styles.headerLeft}>
           <span className="brand-dot" />
           <h1>PRSA Downtime</h1>
-          {line && <span className="line-chip">{line.short_name}</span>}
+          {line && <span className={styles.lineChip}>{line.short_name}</span>}
         </div>
-        <div className="header-right">
-          <span className="user-email">{session.user.email}</span>
+        <div className={styles.headerRight}>
+          <span className={styles.userEmail}>{session.user.email}</span>
           <button className="btn-link" onClick={() => supabase.auth.signOut()}>
             <IconSignOut />
             Sign out
           </button>
-          <span className="header-logo">
+          <span className={styles.headerLogo}>
             <AstemoLogo />
           </span>
         </div>
       </header>
 
-      <nav className="app-nav">
-        {NAV.map(({ to, label, Icon }) => (
+      <nav className={styles.appNav}>
+        {visibleNav.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
-            className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
+            className={({ isActive }) =>
+              `${styles.navItem}${isActive ? ` ${styles.navItemActive}` : ''}`
+            }
           >
             <Icon />
             {label}
@@ -57,8 +70,10 @@ export default function Layout({ session }: { session: Session }) {
         ))}
       </nav>
 
-      <main className="app-main">
-        <Outlet />
+      <main className={styles.appMain}>
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );

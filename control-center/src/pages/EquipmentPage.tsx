@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { createEquipment, getEquipment, updateEquipment } from '../lib/api';
-import type { Equipment } from '../types';
+import type { Equipment } from '../lib/api';
 
 export default function EquipmentPage() {
   const { line } = useLine();

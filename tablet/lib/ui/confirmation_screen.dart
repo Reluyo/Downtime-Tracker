@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/local/database.dart';
-import '../main.dart';
+import '../service_provider.dart';
 import 'active_downtime_screen.dart';
 import 'theme.dart';
 import 'widgets/astemo_logo.dart';
@@ -62,7 +62,7 @@ class ConfirmationScreen extends StatelessWidget {
   }
 
   Future<void> _start(BuildContext context) async {
-    final event = await repo.startEvent(equipment.id);
+    final event = await ServiceProvider.of(context).repository.startEvent(equipment.id);
     if (!context.mounted) return;
     // Replace so Back from the active screen doesn't return here.
     await Navigator.of(context).pushReplacement(

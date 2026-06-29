@@ -26,14 +26,21 @@ export function localDateKey(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Turns a date-input value (YYYY-MM-DD) into an end-of-day ISO string. */
+/** Turns a date-input value (YYYY-MM-DD) into an end-of-day string.
+ *  Does NOT convert to UTC — PostgREST interprets as the server's timezone. */
 export function endOfDayIso(dateStr: string): string {
-  return new Date(`${dateStr}T23:59:59.999`).toISOString();
+  return `${dateStr}T23:59:59.999`;
 }
 
-/** Turns a date-input value (YYYY-MM-DD) into a start-of-day ISO string. */
+/** Turns a date-input value (YYYY-MM-DD) into a start-of-day string.
+ *  Does NOT convert to UTC — PostgREST interprets as the server's timezone. */
 export function startOfDayIso(dateStr: string): string {
-  return new Date(`${dateStr}T00:00:00.000`).toISOString();
+  return `${dateStr}T00:00:00`;
+}
+
+/** Returns the IANA timezone name of the current browser, e.g. "America/Chicago". */
+export function browserTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 /** Trigger a CSV file download in the browser. */

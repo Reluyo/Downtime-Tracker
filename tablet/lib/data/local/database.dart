@@ -51,6 +51,17 @@ class CachedConfig extends Table {
   Set<Column> get primaryKey => {lineId};
 }
 
+/// Persists the operator's selected production line so it survives app
+/// restarts. Only one row exists at any time.
+class SelectedLine extends Table {
+  TextColumn get lineId => text()();
+  TextColumn get lineName => text()();
+  TextColumn get shortName => text()();
+
+  @override
+  Set<Column> get primaryKey => {lineId};
+}
+
 /// Local downtime events. Created when the operator starts an event, updated
 /// when resolved, and pushed to Supabase by the sync service.
 class LocalEvents extends Table {
@@ -71,12 +82,29 @@ class LocalEvents extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [CachedEquipment, CachedReasons, CachedConfig, LocalEvents])
+@DriftDatabase(tables: [
+  CachedEquipment,
+  CachedReasons,
+  CachedConfig,
+  SelectedLine,
+  LocalEvents,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_open());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // v2 adds the selected_line table.
+            await m.createTable(selectedLine);
+          }
+        },
+      );
 
   static QueryExecutor _open() {
     // drift_flutter picks an appropriate platform location for the db file.

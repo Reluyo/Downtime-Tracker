@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../config/env.dart';
 import '../config/supabase.dart';
 import 'local/database.dart';
 
@@ -11,7 +10,7 @@ import 'local/database.dart';
 ///
 /// Lifecycle of an event (one at a time, per the PoC flow):
 ///   start  -> a local row is created (synced = false, ended_at = null)
-///   resolve-> ended_at + duration + reason/note set; pushed to Supabase
+///   resolve-> ended_at + reason/note set; duration computed server-side
 ///   discard-> the local row is deleted (nothing was ever pushed)
 class DowntimeRepository {
   DowntimeRepository(this.db);
@@ -20,27 +19,71 @@ class DowntimeRepository {
   static const _uuid = Uuid();
 
   // ---------------------------------------------------------------------------
-  // Reference data (line / equipment / reasons / config)
+  // Line selection
   // ---------------------------------------------------------------------------
 
-  /// Pulls the assigned line's configuration from Supabase into the local
-  /// cache so the operator UI works offline afterwards. Requires connectivity.
-  Future<void> syncReferenceData() async {
-    final line = await supabase
+  /// Fetches all lines from Supabase (for the line picker).
+  Future<List<Map<String, dynamic>>> fetchAllLines() async {
+    return await supabase
         .from('lines')
         .select('id, name, short_name')
-        .eq('short_name', Env.lineShortName)
-        .single();
-    final lineId = line['id'] as String;
+        .order('name');
+  }
 
+  /// Persists the operator's line selection locally.
+  Future<void> selectLine({
+    required String lineId,
+    required String lineName,
+    required String shortName,
+  }) async {
+    await db.transaction(() async {
+      await db.delete(db.selectedLine).go();
+      await db.into(db.selectedLine).insert(SelectedLineCompanion.insert(
+            lineId: lineId,
+            lineName: lineName,
+            shortName: shortName,
+          ));
+    });
+  }
+
+  /// Returns the currently selected line, or null if none chosen yet.
+  Future<SelectedLineData?> getSelectedLine() {
+    return db.select(db.selectedLine).getSingleOrNull();
+  }
+
+  /// Clears cached reference data so a fresh sync can repopulate it.
+  Future<void> clearCachedReferenceData() async {
+    await db.transaction(() async {
+      await db.delete(db.cachedEquipment).go();
+      await db.delete(db.cachedReasons).go();
+      await db.delete(db.cachedConfig).go();
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reference data (equipment / reasons / config for a specific line)
+  // ---------------------------------------------------------------------------
+
+  /// Pulls the selected line's configuration from Supabase into the local
+  /// cache so the operator UI works offline afterwards. Requires connectivity.
+  ///
+  /// [lineId] — the Supabase line UUID to sync for.
+  Future<void> syncReferenceData(String lineId) async {
     final equipment = await supabase
         .from('equipment')
         .select('id, line_id, name, display_order, is_active')
         .eq('line_id', lineId);
 
-    final reasons = await supabase
-        .from('downtime_reasons')
-        .select('id, equipment_id, label, requires_note, display_order, is_active');
+    final equipmentIds = equipment.map((e) => e['id'] as String).toList();
+
+    // Fix #18: filter reasons server-side by equipment IDs.
+    final reasons = equipmentIds.isEmpty
+        ? <Map<String, dynamic>>[]
+        : await supabase
+            .from('downtime_reasons')
+            .select(
+                'id, equipment_id, label, requires_note, display_order, is_active')
+            .inFilter('equipment_id', equipmentIds);
 
     final config = await supabase
         .from('app_config')
@@ -63,10 +106,7 @@ class DowntimeRepository {
             ));
       }
 
-      final equipmentIds = equipment.map((e) => e['id'] as String).toSet();
       for (final r in reasons) {
-        // Only keep reasons that belong to this line's equipment.
-        if (!equipmentIds.contains(r['equipment_id'])) continue;
         await db.into(db.cachedReasons).insert(CachedReasonsCompanion.insert(
               id: r['id'] as String,
               equipmentId: r['equipment_id'] as String,
@@ -134,24 +174,20 @@ class DowntimeRepository {
     return (db.select(db.localEvents)..where((t) => t.id.equals(id))).getSingle();
   }
 
-  /// Closes an event with a reason (+ optional note) and tries to push it.
+  /// Closes an event with a reason (+ optional note). Duration is computed
+  /// server-side by a trigger (migration 003), so we only store ended_at.
   Future<void> resolveEvent({
     required String eventId,
     required String reasonId,
     String? note,
   }) async {
-    final event =
-        await (db.select(db.localEvents)..where((t) => t.id.equals(eventId)))
-            .getSingle();
     final endedAt = DateTime.now().toUtc();
-    final duration = endedAt.difference(event.startedAt).inSeconds;
 
     await (db.update(db.localEvents)..where((t) => t.id.equals(eventId))).write(
       LocalEventsCompanion(
         reasonId: Value(reasonId),
         note: Value(note),
         endedAt: Value(endedAt),
-        durationSeconds: Value(duration),
       ),
     );
   }
@@ -174,6 +210,8 @@ class DowntimeRepository {
   }
 
   /// Pushes a single closed event to Supabase. Throws on failure.
+  /// Note: duration_seconds is NOT sent — the server computes it from
+  /// started_at and ended_at via a trigger (migration 003).
   Future<void> pushEvent(LocalEvent e) async {
     await supabase.from('downtime_events').upsert({
       'id': e.id,
@@ -183,7 +221,6 @@ class DowntimeRepository {
       'note': e.note,
       'started_at': e.startedAt.toIso8601String(),
       'ended_at': e.endedAt?.toIso8601String(),
-      'duration_seconds': e.durationSeconds,
       'synced': true,
     });
     await markSynced(e.id);

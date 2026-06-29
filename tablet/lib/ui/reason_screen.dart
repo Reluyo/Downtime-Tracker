@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../data/local/database.dart';
-import '../main.dart';
+import '../service_provider.dart';
 import 'other_note_screen.dart';
 import 'widgets/astemo_logo.dart';
 
@@ -20,12 +20,14 @@ class ReasonScreen extends StatefulWidget {
 }
 
 class _ReasonScreenState extends State<ReasonScreen> {
-  late Future<List<CachedReason>> _reasonsFuture;
+  Future<List<CachedReason>>? _reasonsFuture;
 
   @override
-  void initState() {
-    super.initState();
-    _reasonsFuture = repo.reasonsForEquipment(widget.equipment.id);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reasonsFuture ??= ServiceProvider.of(context)
+        .repository
+        .reasonsForEquipment(widget.equipment.id);
   }
 
   @override
@@ -81,13 +83,14 @@ class _ReasonScreenState extends State<ReasonScreen> {
   }
 
   Future<void> _close(String reasonId, String? note) async {
-    await repo.resolveEvent(
+    final sp = ServiceProvider.of(context);
+    await sp.repository.resolveEvent(
       eventId: widget.event.id,
       reasonId: reasonId,
       note: note,
     );
     // Best-effort immediate sync; the event is already saved locally.
-    unawaited(syncService.syncNow());
+    unawaited(sp.syncService.syncNow());
     if (mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }

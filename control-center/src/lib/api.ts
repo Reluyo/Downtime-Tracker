@@ -1,11 +1,22 @@
 import { supabase } from './supabaseClient';
-import type {
-  AppConfig,
-  DowntimeEventRow,
-  DowntimeReason,
-  Equipment,
-  Line,
-} from '../types';
+import type { Tables, TablesUpdate } from '../types/database.types';
+
+// ---------------------------------------------------------------------------
+// Derived types from database.types.ts
+// ---------------------------------------------------------------------------
+
+export type Line = Tables<'lines'>;
+export type Equipment = Tables<'equipment'>;
+export type DowntimeReason = Tables<'downtime_reasons'>;
+export type AppConfig = Tables<'app_config'>;
+export type DowntimeEvent = Tables<'downtime_events'>;
+export type UserRole = Tables<'user_roles'>;
+
+/** A downtime event joined with its equipment + reason labels, for display. */
+export interface DowntimeEventRow extends DowntimeEvent {
+  equipment_name: string;
+  reason_label: string | null;
+}
 
 // ---------------------------------------------------------------------------
 // Lines
@@ -127,86 +138,106 @@ export async function saveConfig(
 // Downtime events
 // ---------------------------------------------------------------------------
 
-interface RawEventRow {
-  id: string;
-  line_id: string;
-  equipment_id: string;
-  reason_id: string | null;
-  note: string | null;
-  started_at: string;
-  ended_at: string | null;
-  duration_seconds: number | null;
-  synced: boolean;
-  created_at: string;
-  equipment: { name: string } | { name: string }[] | null;
-  downtime_reasons: { label: string } | { label: string }[] | null;
-}
-
 export interface EventFilters {
   lineId: string;
-  startDate?: string; // ISO date (inclusive)
-  endDate?: string; // ISO date (inclusive, end-of-day applied by caller)
+  startDate?: string;
+  endDate?: string;
   equipmentId?: string;
   reasonId?: string;
 }
 
-export async function getEvents(filters: EventFilters): Promise<DowntimeEventRow[]> {
-  let query = supabase
-    .from('downtime_events')
-    .select(
-      'id, line_id, equipment_id, reason_id, note, started_at, ended_at, ' +
-        'duration_seconds, synced, created_at, ' +
-        // Single FK to each related table, so the table name embeds unambiguously.
-        'equipment ( name ), downtime_reasons ( label )',
-    )
-    .eq('line_id', filters.lineId)
-    .order('started_at', { ascending: false });
+export const DEFAULT_PAGE_SIZE = 50;
 
-  if (filters.startDate) query = query.gte('started_at', filters.startDate);
-  if (filters.endDate) query = query.lte('started_at', filters.endDate);
-  if (filters.equipmentId) query = query.eq('equipment_id', filters.equipmentId);
-  if (filters.reasonId) query = query.eq('reason_id', filters.reasonId);
+export interface PaginatedEvents {
+  rows: DowntimeEventRow[];
+  totalCount: number;
+}
 
-  const { data, error } = await query;
-  if (error) throw error;
-
-  // Without generated DB types, the embedded-relation select isn't inferred,
-  // so map over an explicit raw shape.
-  const rows = (data ?? []) as unknown as RawEventRow[];
-
-  // Flatten the embedded relations into label fields.
-  return rows.map((r): DowntimeEventRow => {
-    const equipment = Array.isArray(r.equipment) ? r.equipment[0] : r.equipment;
-    const reason = Array.isArray(r.downtime_reasons)
-      ? r.downtime_reasons[0]
-      : r.downtime_reasons;
+function mapEventRows(data: Record<string, unknown>[]): DowntimeEventRow[] {
+  return data.map((r): DowntimeEventRow => {
+    const eq = r.equipment as { name: string } | { name: string }[] | null;
+    const reason = r.downtime_reasons as { label: string } | { label: string }[] | null;
+    const equipment = Array.isArray(eq) ? eq[0] : eq;
+    const reasonObj = Array.isArray(reason) ? reason[0] : reason;
     return {
-      id: r.id,
-      line_id: r.line_id,
-      equipment_id: r.equipment_id,
-      reason_id: r.reason_id,
-      note: r.note,
-      started_at: r.started_at,
-      ended_at: r.ended_at,
-      duration_seconds: r.duration_seconds,
-      synced: r.synced,
-      created_at: r.created_at,
+      id: r.id as string,
+      line_id: r.line_id as string,
+      equipment_id: r.equipment_id as string,
+      reason_id: r.reason_id as string | null,
+      note: r.note as string | null,
+      started_at: r.started_at as string,
+      ended_at: r.ended_at as string | null,
+      duration_seconds: r.duration_seconds as number | null,
+      synced: r.synced as boolean,
+      created_at: r.created_at as string,
       equipment_name: equipment?.name ?? '—',
-      reason_label: reason?.label ?? null,
+      reason_label: reasonObj?.label ?? null,
     };
   });
 }
 
+const EVENT_SELECT =
+  'id, line_id, equipment_id, reason_id, note, started_at, ended_at, ' +
+  'duration_seconds, synced, created_at, ' +
+  'equipment ( name ), downtime_reasons ( label )';
+
+function applyEventFilters(
+  query: ReturnType<ReturnType<typeof supabase.from>['select']>,
+  filters: EventFilters,
+) {
+  if (filters.startDate) query = query.gte('started_at', filters.startDate);
+  if (filters.endDate) query = query.lte('started_at', filters.endDate);
+  if (filters.equipmentId) query = query.eq('equipment_id', filters.equipmentId);
+  if (filters.reasonId) query = query.eq('reason_id', filters.reasonId);
+  return query;
+}
+
+export async function getEvents(
+  filters: EventFilters,
+  page = 0,
+  pageSize = DEFAULT_PAGE_SIZE,
+): Promise<PaginatedEvents> {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from('downtime_events')
+    .select(EVENT_SELECT, { count: 'exact' })
+    .eq('line_id', filters.lineId)
+    .order('started_at', { ascending: false })
+    .range(from, to);
+
+  query = applyEventFilters(query, filters);
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+
+  return {
+    rows: mapEventRows((data ?? []) as unknown as Record<string, unknown>[]),
+    totalCount: count ?? 0,
+  };
+}
+
+/** Fetch ALL events matching filters (no pagination). Used for CSV export. */
+export async function getAllEvents(filters: EventFilters): Promise<DowntimeEventRow[]> {
+  let query = supabase
+    .from('downtime_events')
+    .select(EVENT_SELECT)
+    .eq('line_id', filters.lineId)
+    .order('started_at', { ascending: false });
+
+  query = applyEventFilters(query, filters);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return mapEventRows((data ?? []) as unknown as Record<string, unknown>[]);
+}
+
+/** Update event — duration_seconds is omitted because the server trigger computes it. */
 export async function updateEvent(
   id: string,
-  patch: {
-    equipment_id?: string;
-    reason_id?: string | null;
-    note?: string | null;
-    started_at?: string;
-    ended_at?: string | null;
-    duration_seconds?: number | null;
-  },
+  patch: Omit<TablesUpdate<'downtime_events'>, 'duration_seconds'>,
 ): Promise<void> {
   const { error } = await supabase
     .from('downtime_events')
@@ -218,4 +249,106 @@ export async function updateEvent(
 export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from('downtime_events').delete().eq('id', id);
   if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// User roles
+// ---------------------------------------------------------------------------
+
+export async function getUserRole(userId: string): Promise<'admin' | 'viewer'> {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.role as 'admin' | 'viewer') ?? 'viewer';
+}
+
+// ---------------------------------------------------------------------------
+// Report RPC functions
+// ---------------------------------------------------------------------------
+
+export interface ReportByEquipment {
+  equipment_id: string;
+  equipment_name: string;
+  total_seconds: number;
+  event_count: number;
+}
+
+export interface ReportByReason {
+  reason_id: string;
+  reason_label: string;
+  total_seconds: number;
+  event_count: number;
+}
+
+export interface ReportByDay {
+  day: string;
+  total_seconds: number;
+  event_count: number;
+}
+
+export interface ReportSummary {
+  total_seconds: number;
+  event_count: number;
+}
+
+export async function getReportByEquipment(
+  lineId: string,
+  start: string,
+  end: string,
+): Promise<ReportByEquipment[]> {
+  const { data, error } = await supabase.rpc('downtime_by_equipment', {
+    p_line_id: lineId,
+    p_start: start,
+    p_end: end,
+  });
+  if (error) throw error;
+  return (data ?? []) as ReportByEquipment[];
+}
+
+export async function getReportByReason(
+  lineId: string,
+  start: string,
+  end: string,
+): Promise<ReportByReason[]> {
+  const { data, error } = await supabase.rpc('downtime_by_reason', {
+    p_line_id: lineId,
+    p_start: start,
+    p_end: end,
+  });
+  if (error) throw error;
+  return (data ?? []) as ReportByReason[];
+}
+
+export async function getReportByDay(
+  lineId: string,
+  start: string,
+  end: string,
+  timezone: string,
+): Promise<ReportByDay[]> {
+  const { data, error } = await supabase.rpc('downtime_by_day', {
+    p_line_id: lineId,
+    p_start: start,
+    p_end: end,
+    p_timezone: timezone,
+  });
+  if (error) throw error;
+  return (data ?? []) as ReportByDay[];
+}
+
+export async function getReportSummary(
+  lineId: string,
+  start: string,
+  end: string,
+): Promise<ReportSummary> {
+  const { data, error } = await supabase.rpc('downtime_summary', {
+    p_line_id: lineId,
+    p_start: start,
+    p_end: end,
+  });
+  if (error) throw error;
+  const arr = (data ?? []) as ReportSummary[];
+  return arr[0] ?? { total_seconds: 0, event_count: 0 };
 }

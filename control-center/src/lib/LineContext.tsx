@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { getLines } from './api';
-import type { Line } from '../types';
+import type { Line } from './api';
 
 interface LineContextValue {
   lines: Line[];

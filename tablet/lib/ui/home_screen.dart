@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../config/env.dart';
 import '../data/local/database.dart';
-import '../main.dart';
+import '../service_provider.dart';
 import '../services/sync_service.dart';
 import 'confirmation_screen.dart';
 import 'theme.dart';
@@ -11,22 +10,31 @@ import 'widgets/astemo_logo.dart';
 /// Step 1 — Home. Shows the line name, a sync-status indicator, and a grid of
 /// large buttons (one per active equipment).
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.onChangeLine});
+
+  /// Called when the operator taps "Change Line" to return to the picker.
+  final VoidCallback onChangeLine;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<CachedEquipmentData>> _equipmentFuture;
+  Future<List<CachedEquipmentData>>? _equipmentFuture;
+  String _lineName = '';
+  SyncService? _boundSyncService;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-    // Reload the grid when a background sync changes state (e.g. first sync
-    // populates the cache).
-    syncService.addListener(_onSyncChanged);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final sync = ServiceProvider.of(context).syncService;
+    if (_boundSyncService != sync) {
+      _boundSyncService?.removeListener(_onSyncChanged);
+      _boundSyncService = sync;
+      sync.addListener(_onSyncChanged);
+    }
+    _equipmentFuture ??= ServiceProvider.of(context).repository.activeEquipment();
+    if (_lineName.isEmpty) _loadLineName();
   }
 
   void _onSyncChanged() {
@@ -35,30 +43,53 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    syncService.removeListener(_onSyncChanged);
+    _boundSyncService?.removeListener(_onSyncChanged);
     super.dispose();
   }
 
   void _load() {
-    _equipmentFuture = repo.activeEquipment();
+    _equipmentFuture = ServiceProvider.of(context).repository.activeEquipment();
+  }
+
+  Future<void> _loadLineName() async {
+    final selected =
+        await ServiceProvider.of(context).repository.getSelectedLine();
+    if (mounted && selected != null) {
+      setState(() => _lineName = selected.lineName);
+    }
   }
 
   Future<void> _refresh() async {
-    await syncService.syncNow();
+    await ServiceProvider.of(context).syncService.syncNow();
     setState(_load);
+  }
+
+  Future<void> _onChangeLine() async {
+    final sp = ServiceProvider.of(context);
+    await sp.repository.clearCachedReferenceData();
+    widget.onChangeLine();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Env.lineShortName),
+        title: Text(_lineName),
+        leading: IconButton(
+          icon: const Icon(Icons.swap_horiz),
+          tooltip: 'Change Line',
+          onPressed: _onChangeLine,
+        ),
         actions: [
           AnimatedBuilder(
-            animation: syncService,
+            animation: ServiceProvider.of(context).syncService,
             builder: (_, __) => Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Center(child: _SyncIndicator(status: syncService.status)),
+              child: Center(
+                child: _SyncIndicator(
+                  status: ServiceProvider.of(context).syncService.status,
+                ),
+              ),
             ),
           ),
           const AstemoAppBarLogo(),

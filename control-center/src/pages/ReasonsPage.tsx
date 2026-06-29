@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { createReason, getEquipment, getReasons, updateReason } from '../lib/api';
-import type { DowntimeReason, Equipment } from '../types';
+import type { DowntimeReason, Equipment } from '../lib/api';
 
 export default function ReasonsPage() {
   const { line } = useLine();

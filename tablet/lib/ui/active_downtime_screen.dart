@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../data/local/database.dart';
-import '../main.dart';
+import '../service_provider.dart';
 import 'reason_screen.dart';
 import 'theme.dart';
 import 'widgets/astemo_logo.dart';
@@ -40,18 +40,27 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
   int _repeatSeconds = 15 * 60;
   late int _nextAlertAtSeconds;
   bool _alerting = false;
+  bool _configLoaded = false;
 
   @override
   void initState() {
     super.initState();
     WakelockPlus.enable();
     _nextAlertAtSeconds = _thresholdSeconds;
-    _loadConfig();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_configLoaded) {
+      _configLoaded = true;
+      _loadConfig();
+    }
+  }
+
   Future<void> _loadConfig() async {
-    final cfg = await repo.config();
+    final cfg = await ServiceProvider.of(context).repository.config();
     if (cfg == null || !mounted) return;
     setState(() {
       _thresholdSeconds = cfg.alertThresholdMinutes * 60;
@@ -153,7 +162,7 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
       ),
     );
     if (discard == true) {
-      await repo.discardEvent(widget.event.id);
+      await ServiceProvider.of(context).repository.discardEvent(widget.event.id);
       if (mounted) Navigator.of(context).pop();
     }
   }

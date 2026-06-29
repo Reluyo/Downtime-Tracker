@@ -1,0 +1,28 @@
+/* ===== Reports page specific ===== */
+.reportGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+.reportCard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.reportCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.reportCard h3 {
+  font-size: 14px;
+  margin: 0;
+  color: var(--text);
+}
+.reportCard :global(.data-table) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}

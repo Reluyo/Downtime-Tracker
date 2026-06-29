@@ -4,7 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class Env {
   static String get supabaseUrl => _require('SUPABASE_URL');
   static String get supabaseAnonKey => _require('SUPABASE_ANON_KEY');
-  static String get lineShortName => dotenv.env['LINE_SHORT_NAME'] ?? 'PRSA 2';
+  /// Optional default line short name. When set, the line picker can
+  /// pre-select this line, but the operator can still change lines.
+  static String? get lineShortName => dotenv.env['LINE_SHORT_NAME'];
 
   static String _require(String key) {
     final value = dotenv.env[key];

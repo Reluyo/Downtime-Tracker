@@ -1,0 +1,50 @@
+/* ===== Login ===== */
+.loginWrap {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.loginLogo {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+}
+.loginCard {
+  width: 100%;
+  max-width: 380px;
+  padding: 34px 32px;
+  background: linear-gradient(180deg, var(--panel), var(--bg-elev));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.brandMark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.loginCard h1 {
+  font-size: 19px;
+  margin: 0;
+}
+.subtitle {
+  margin: 2px 0 26px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.loginCard label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.loginCard input {
+  width: 100%;
+  margin-bottom: 16px;
+}
