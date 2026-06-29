@@ -188,6 +188,7 @@ export default function HistoryPage() {
                 <td className="note-cell">{e.note ?? ''}</td>
                 <td>
                   <span className={e.ended_at ? 'badge closed' : 'badge open'}>
+                    <span className="dot" />
                     {e.ended_at ? 'Closed' : 'Open'}
                   </span>
                 </td>
