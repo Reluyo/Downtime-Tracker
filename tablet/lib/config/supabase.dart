@@ -7,7 +7,7 @@ import 'env.dart';
 Future<void> initSupabase() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
-    publishableKey: Env.supabaseAnonKey,
+    anonKey: Env.supabaseAnonKey,
   );
 }
 
