@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabaseClient';
+import { LineProvider } from './lib/LineContext';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
+import Layout from './components/Layout';
+import HistoryPage from './pages/HistoryPage';
+import EquipmentPage from './pages/EquipmentPage';
+import ReasonsPage from './pages/ReasonsPage';
+import ConfigPage from './pages/ConfigPage';
+import ReportsPage from './pages/ReportsPage';
 
 /**
- * Root of the control center. Handles the Supabase Auth session and routes
- * between the login screen and the (placeholder) admin dashboard.
- *
- * NOTE: This is scaffolding. The dashboard sections are stubs that confirm the
- * Supabase connection works; feature screens (history, equipment, reasons,
- * config, reporting) are built in a later pass.
+ * Root of the control center. Gates on the Supabase Auth session, then renders
+ * the admin app (routing + line context).
  */
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -21,21 +24,29 @@ export default function App() {
       setSession(data.session);
       setLoading(false);
     });
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
-
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return <div className="app-main">Loading…</div>;
-  }
+  if (loading) return <div className="app-main">Loading…</div>;
+  if (!session) return <Login />;
 
-  if (!session) {
-    return <Login />;
-  }
-
-  return <Dashboard session={session} />;
+  return (
+    <LineProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout session={session} />}>
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/equipment" element={<EquipmentPage />} />
+            <Route path="/reasons" element={<ReasonsPage />} />
+            <Route path="/config" element={<ConfigPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="*" element={<Navigate to="/history" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </LineProvider>
+  );
 }

@@ -31,9 +31,20 @@ npx vercel
 Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as Vercel environment
 variables.
 
-## Status
+## Features
 
-Scaffold only. Auth (Supabase email/password) and the Supabase client are
-wired and verified. The admin feature areas — downtime history, equipment,
-reason codes, app config, and reporting — are stubbed on the dashboard and
-will be implemented next.
+- **History** — filter downtime events by date range / equipment / reason;
+  edit or delete individual events.
+- **Equipment** — add, rename, reorder, and (de)activate equipment.
+- **Reason Codes** — per-equipment reason management with a `requires_note`
+  toggle and (de)activation.
+- **Configuration** — alert threshold + repeat interval per line.
+- **Reports** — total downtime by equipment, by reason code, and by day for a
+  date range.
+
+Admin access is via Supabase email/password auth. All data access is governed
+by the RLS policies in `supabase/migrations/001_initial_schema.sql`.
+
+> Note: the app builds and type-checks cleanly here, but the live data flows
+> (which require an authenticated admin session) haven't been exercised against
+> Supabase from this environment — sign in and click through to confirm.

@@ -135,3 +135,240 @@ button {
   color: #92400e;
   margin-top: 12px;
 }
+
+/* ===== Control center app shell ===== */
+.app-header {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.line-chip {
+  font-size: 12px;
+  font-weight: 600;
+  background: #374151;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.user-email {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+.nav-item {
+  padding: 14px 16px;
+  text-decoration: none;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.nav-item:hover {
+  color: #111827;
+}
+.nav-item.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+section h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+.hint,
+.summary {
+  color: #4b5563;
+  font-size: 14px;
+}
+
+/* ===== Filters / forms ===== */
+.filters,
+.add-row,
+.config-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.filters label,
+.config-form label,
+.inline-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  gap: 4px;
+}
+.inline-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+}
+.order-input {
+  width: 80px;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.saved-note {
+  color: #16a34a;
+  font-weight: 600;
+  align-self: center;
+}
+
+/* ===== Buttons ===== */
+.btn-secondary {
+  padding: 9px 14px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.btn-link-dark {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+}
+.btn-link-danger {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-weight: 600;
+}
+.btn-link-dark:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ===== Tables ===== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+}
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f1f3;
+  vertical-align: middle;
+}
+.data-table th {
+  background: #f9fafb;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+.data-table.compact th,
+.data-table.compact td {
+  padding: 7px 10px;
+}
+.data-table td.actions {
+  display: flex;
+  gap: 12px;
+}
+.note-cell {
+  max-width: 240px;
+  white-space: pre-wrap;
+}
+.empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 24px;
+}
+.row-inactive {
+  opacity: 0.55;
+}
+
+.badge.open {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.badge.closed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ===== Modal ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.modal h3 {
+  margin: 0 0 16px;
+}
+.modal label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* ===== Reports ===== */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.report-card h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
