@@ -26,3 +26,10 @@
   border-radius: 0;
   background: transparent;
 }
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--primary-bright);
+  margin-top: 4px;
+  min-width: 2px;
+}

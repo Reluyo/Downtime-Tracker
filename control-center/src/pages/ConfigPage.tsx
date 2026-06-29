@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
-import { getConfig, saveConfig } from '../lib/api';
+import {
+  getConfig,
+  saveConfig,
+  getShifts,
+  createShift,
+  updateShift,
+  deleteShift,
+} from '../lib/api';
+import type { Shift } from '../lib/api';
 import { IconCheck } from '../components/Icons';
 
 export default function ConfigPage() {
@@ -12,17 +20,26 @@ export default function ConfigPage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
+  // Shifts
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [newShiftName, setNewShiftName] = useState('');
+  const [newShiftStart, setNewShiftStart] = useState('');
+  const [newShiftEnd, setNewShiftEnd] = useState('');
+  const [addingShift, setAddingShift] = useState(false);
+
   useEffect(() => {
     if (!line) return;
     setLoading(true);
-    getConfig(line.id)
-      .then((cfg) => {
+    Promise.all([
+      getConfig(line.id).then((cfg) => {
         if (cfg) {
           setThreshold(String(cfg.alert_threshold_minutes));
           setRepeat(String(cfg.alert_repeat_minutes));
         }
-      })
-      .catch((e) => setError(e.message))
+      }),
+      getShifts(line.id).then(setShifts),
+    ])
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, [line]);
 
@@ -91,6 +108,134 @@ export default function ConfigPage() {
           </span>
         )}
       </div>
+
+      <hr style={{ borderColor: 'var(--border)', margin: '32px 0' }} />
+
+      <h2>Shifts — {line.short_name}</h2>
+      <p className="hint">
+        Define production shifts. Hours use 24-hour format (e.g. 6 = 6 AM, 18 = 6 PM).
+        Overnight shifts: set start &gt; end (e.g. 22–6).
+      </p>
+
+      <table className="data-table" style={{ marginBottom: 16 }}>
+        <thead>
+          <tr>
+            <th style={{ width: 60 }}>Order</th>
+            <th>Name</th>
+            <th style={{ width: 90 }}>Start</th>
+            <th style={{ width: 90 }}>End</th>
+            <th style={{ width: 120 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {shifts.length === 0 && (
+            <tr>
+              <td colSpan={5} className="empty">No shifts configured</td>
+            </tr>
+          )}
+          {shifts.map((s) => (
+            <ShiftRow key={s.id} shift={s} onChanged={() => getShifts(line.id).then(setShifts)} />
+          ))}
+        </tbody>
+      </table>
+
+      <div className="config-form" style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
+        <label>
+          Name
+          <input value={newShiftName} onChange={(e) => setNewShiftName(e.target.value)} placeholder="e.g. 1st Shift" />
+        </label>
+        <label>
+          Start (0-23)
+          <input type="number" min={0} max={23} value={newShiftStart} onChange={(e) => setNewShiftStart(e.target.value)} style={{ width: 80 }} />
+        </label>
+        <label>
+          End (0-23)
+          <input type="number" min={0} max={23} value={newShiftEnd} onChange={(e) => setNewShiftEnd(e.target.value)} style={{ width: 80 }} />
+        </label>
+        <button
+          className="btn-primary"
+          disabled={!newShiftName.trim() || newShiftStart === '' || newShiftEnd === '' || addingShift}
+          onClick={async () => {
+            setAddingShift(true);
+            try {
+              await createShift({
+                line_id: line.id,
+                name: newShiftName.trim(),
+                start_hour: Math.max(0, Math.min(23, Number(newShiftStart))),
+                end_hour: Math.max(0, Math.min(23, Number(newShiftEnd))),
+                display_order: shifts.length + 1,
+              });
+              setNewShiftName('');
+              setNewShiftStart('');
+              setNewShiftEnd('');
+              setShifts(await getShifts(line.id));
+            } catch (e) {
+              setError(e instanceof Error ? e.message : String(e));
+            } finally {
+              setAddingShift(false);
+            }
+          }}
+        >
+          {addingShift ? 'Adding…' : 'Add shift'}
+        </button>
+      </div>
     </section>
+  );
+}
+
+function ShiftRow({ shift, onChanged }: { shift: Shift; onChanged: () => void }) {
+  const [name, setName] = useState(shift.name);
+  const [startHour, setStartHour] = useState(String(shift.start_hour));
+  const [endHour, setEndHour] = useState(String(shift.end_hour));
+  const [order, setOrder] = useState(String(shift.display_order));
+
+  const dirty =
+    name !== shift.name ||
+    Number(startHour) !== shift.start_hour ||
+    Number(endHour) !== shift.end_hour ||
+    Number(order) !== shift.display_order;
+
+  return (
+    <tr>
+      <td>
+        <input type="number" value={order} onChange={(e) => setOrder(e.target.value)} style={{ width: 50 }} />
+      </td>
+      <td>
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </td>
+      <td>
+        <input type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} style={{ width: 60 }} />
+      </td>
+      <td>
+        <input type="number" min={0} max={23} value={endHour} onChange={(e) => setEndHour(e.target.value)} style={{ width: 60 }} />
+      </td>
+      <td className="actions">
+        <button
+          className="btn-link-dark"
+          disabled={!dirty || !name.trim()}
+          onClick={async () => {
+            await updateShift(shift.id, {
+              name: name.trim(),
+              start_hour: Math.max(0, Math.min(23, Number(startHour))),
+              end_hour: Math.max(0, Math.min(23, Number(endHour))),
+              display_order: Number(order),
+            });
+            onChanged();
+          }}
+        >
+          Save
+        </button>
+        <button
+          className="btn-link-danger"
+          onClick={async () => {
+            if (!confirm(`Delete shift "${shift.name}"?`)) return;
+            await deleteShift(shift.id);
+            onChanged();
+          }}
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
   );
 }

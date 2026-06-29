@@ -25,6 +25,9 @@ class SyncService extends ChangeNotifier {
   String? _lastError;
   String? get lastError => _lastError;
 
+  DateTime? _lastSyncedAt;
+  DateTime? get lastSyncedAt => _lastSyncedAt;
+
   bool _syncing = false;
 
   /// Max retry attempts per event push.
@@ -74,6 +77,7 @@ class SyncService extends ChangeNotifier {
       }
 
       _lastError = null;
+      _lastSyncedAt = DateTime.now();
       await _updateStatusFromPending();
     } catch (err) {
       _lastError = err.toString();

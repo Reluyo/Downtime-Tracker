@@ -49,6 +49,7 @@ export type Database = {
       downtime_events: {
         Row: {
           created_at: string
+          deleted_at: string | null
           duration_seconds: number | null
           ended_at: string | null
           equipment_id: string
@@ -58,9 +59,11 @@ export type Database = {
           reason_id: string | null
           started_at: string
           synced: boolean
+          updated_at: string
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
           equipment_id: string
@@ -70,9 +73,11 @@ export type Database = {
           reason_id?: string | null
           started_at: string
           synced?: boolean
+          updated_at?: string
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           duration_seconds?: number | null
           ended_at?: string | null
           equipment_id?: string
@@ -82,6 +87,7 @@ export type Database = {
           reason_id?: string | null
           started_at?: string
           synced?: boolean
+          updated_at?: string
         }
         Relationships: [
           {
@@ -201,6 +207,44 @@ export type Database = {
         }
         Relationships: []
       }
+      shifts: {
+        Row: {
+          id: string
+          line_id: string
+          name: string
+          start_hour: number
+          end_hour: number
+          display_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          line_id: string
+          name: string
+          start_hour: number
+          end_hour: number
+          display_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          line_id?: string
+          name?: string
+          start_hour?: number
+          end_hour?: number
+          display_order?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           user_id: string
@@ -272,6 +316,17 @@ export type Database = {
         Returns: {
           total_seconds: number
           event_count: number
+        }[]
+      }
+      open_events: {
+        Args: {
+          p_line_id: string
+        }
+        Returns: {
+          id: string
+          equipment_id: string
+          equipment_name: string
+          started_at: string
         }[]
       }
       is_admin: {

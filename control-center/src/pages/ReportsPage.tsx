@@ -133,6 +133,7 @@ export default function ReportsPage() {
           <div className={styles.reportGrid}>
             <ReportTable
               title="By Equipment"
+              showBars
               rows={byEquipment.map((b) => ({
                 key: b.equipment_id,
                 label: b.equipment_name,
@@ -142,6 +143,7 @@ export default function ReportsPage() {
             />
             <ReportTable
               title="By Reason Code"
+              showBars
               rows={byReason.map((b) => ({
                 key: b.reason_id,
                 label: b.reason_label || '(no reason)',
@@ -172,7 +174,7 @@ interface TableRow {
   totalSeconds: number;
 }
 
-function ReportTable({ title, rows }: { title: string; rows: TableRow[] }) {
+function ReportTable({ title, rows, showBars }: { title: string; rows: TableRow[]; showBars?: boolean }) {
   const columnName = title.replace('By ', '');
 
   function exportTable() {
@@ -210,13 +212,25 @@ function ReportTable({ title, rows }: { title: string; rows: TableRow[] }) {
               </td>
             </tr>
           )}
-          {rows.map((b) => (
-            <tr key={b.key}>
-              <td>{b.label}</td>
-              <td>{b.count}</td>
-              <td>{formatDuration(b.totalSeconds)}</td>
-            </tr>
-          ))}
+          {rows.map((b) => {
+            const maxSeconds = Math.max(...rows.map((r) => r.totalSeconds), 1);
+            const pct = (b.totalSeconds / maxSeconds) * 100;
+            return (
+              <tr key={b.key}>
+                <td>{b.label}</td>
+                <td>{b.count}</td>
+                <td>
+                  {formatDuration(b.totalSeconds)}
+                  {showBars && (
+                    <div
+                      className={styles.bar}
+                      style={{ width: `${pct}%` }}
+                    />
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

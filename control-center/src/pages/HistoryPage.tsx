@@ -6,11 +6,12 @@ import {
   deleteEvent,
   getEquipment,
   getEvents,
+  getOpenEvents,
   getReasons,
   updateEvent,
   DEFAULT_PAGE_SIZE,
 } from '../lib/api';
-import type { DowntimeEventRow, DowntimeReason, Equipment } from '../lib/api';
+import type { DowntimeEventRow, DowntimeReason, Equipment, OpenEvent } from '../lib/api';
 import {
   endOfDayIso,
   formatDateTime,
@@ -52,6 +53,7 @@ export default function HistoryPage() {
   const [filterReasons, setFilterReasons] = useState<DowntimeReason[]>([]);
 
   const [editing, setEditing] = useState<DowntimeEventRow | null>(null);
+  const [openEvents, setOpenEvents] = useState<OpenEvent[]>([]);
 
   useEffect(() => {
     if (!line) return;
@@ -86,6 +88,7 @@ export default function HistoryPage() {
       );
       setEvents(result.rows);
       setTotalCount(result.totalCount);
+      getOpenEvents(line.id).then(setOpenEvents).catch(() => setOpenEvents([]));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -137,7 +140,7 @@ export default function HistoryPage() {
   );
 
   async function handleDelete(row: DowntimeEventRow) {
-    if (!confirm(`Delete this ${row.equipment_name} event? This cannot be undone.`)) {
+    if (!confirm(`Archive this ${row.equipment_name} event? It will be hidden from views.`)) {
       return;
     }
     try {
@@ -162,6 +165,8 @@ export default function HistoryPage() {
           </span>
         )}
       </div>
+
+      {openEvents.length > 0 && <OpenEventsBanner events={openEvents} />}
 
       <div className="filters">
         <label>
@@ -330,14 +335,34 @@ function EditEventModal({
     try {
       const startedIso = localInputToIso(startedAt);
       const endedIso = localInputToIso(endedAt);
-      // Fix #2: Don't send duration_seconds — the server trigger computes it.
-      await updateEvent(event.id, {
-        equipment_id: equipmentId,
-        reason_id: reasonId || null,
-        note: note.trim() ? note.trim() : null,
-        started_at: startedIso ?? event.started_at,
-        ended_at: endedIso,
-      });
+      const startedIsoVal = startedIso ?? event.started_at;
+      const endedIsoVal = endedIso;
+
+      // Validate times
+      if (startedIsoVal && endedIsoVal) {
+        if (new Date(startedIsoVal) >= new Date(endedIsoVal)) {
+          setError('Start time must be before end time.');
+          setSaving(false);
+          return;
+        }
+        if (new Date(endedIsoVal) > new Date()) {
+          setError('End time cannot be in the future.');
+          setSaving(false);
+          return;
+        }
+      }
+
+      await updateEvent(
+        event.id,
+        {
+          equipment_id: equipmentId,
+          reason_id: reasonId || null,
+          note: note.trim() ? note.trim() : null,
+          started_at: startedIsoVal,
+          ended_at: endedIsoVal,
+        },
+        event.updated_at,
+      );
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -406,6 +431,38 @@ function EditEventModal({
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function OpenEventsBanner({ events }: { events: OpenEvent[] }) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  function elapsed(iso: string): string {
+    const ms = Date.now() - new Date(iso).getTime();
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  return (
+    <div className={styles.openBanner}>
+      <h4>Currently Down</h4>
+      <div>
+        {events.map((e) => (
+          <span key={e.id} className={styles.openItem}>
+            {e.equipment_name}
+            <span className={styles.openItemTime}>{elapsed(e.started_at)}</span>
+          </span>
+        ))}
       </div>
     </div>
   );

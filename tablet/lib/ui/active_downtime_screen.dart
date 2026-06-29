@@ -40,6 +40,7 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
   int _repeatSeconds = 15 * 60;
   late int _nextAlertAtSeconds;
   bool _alerting = false;
+  bool _muted = false;
   bool _configLoaded = false;
 
   @override
@@ -81,13 +82,15 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
 
   Future<void> _triggerAlert() async {
     _alerting = true;
-    // If the operator ignores the dialog, re-alert after the repeat interval.
     _nextAlertAtSeconds = _elapsed.inSeconds + _repeatSeconds;
 
-    unawaited(_startAlertSound());
-    HapticFeedback.heavyImpact();
+    if (!_muted) {
+      unawaited(_startAlertSound());
+      HapticFeedback.heavyImpact();
+    }
 
-    final resolved = await showDialog<bool>(
+    // null = Still Down, true = Resolved, false = Mute
+    final result = await showDialog<bool?>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -97,9 +100,14 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.of(ctx).pop(null),
             child: const Text('Still Down', style: TextStyle(fontSize: 18)),
           ),
+          if (!_muted)
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Mute', style: TextStyle(fontSize: 18)),
+            ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Resolved', style: TextStyle(fontSize: 18)),
@@ -111,10 +119,12 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
     await _stopAlertSound();
     _alerting = false;
 
-    if (resolved == true) {
+    if (result == true) {
       _goToReason();
+    } else if (result == false) {
+      _muted = true;
+      _nextAlertAtSeconds = _elapsed.inSeconds + _repeatSeconds;
     } else {
-      // "Still Down" — reset the timer for the next repeat from now.
       _nextAlertAtSeconds = _elapsed.inSeconds + _repeatSeconds;
     }
   }

@@ -54,3 +54,32 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* Currently-down banner */
+.openBanner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-left: 4px solid var(--crit);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.openBanner h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--crit);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.openItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 20px;
+  font-size: 14px;
+}
+.openItemTime {
+  font-family: 'Fira Code', monospace;
+  color: var(--crit);
+  font-weight: 600;
+}

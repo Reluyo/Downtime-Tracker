@@ -197,6 +197,78 @@ class DowntimeRepository {
     await (db.delete(db.localEvents)..where((t) => t.id.equals(eventId))).go();
   }
 
+  /// Creates a fully resolved past event (for retroactive logging).
+  Future<void> createPastEvent({
+    required String equipmentId,
+    required String reasonId,
+    required DateTime startedAt,
+    required DateTime endedAt,
+    String? note,
+  }) async {
+    final lineId = await cachedLineId();
+    if (lineId == null) {
+      throw StateError('No cached line. Connect to sync configuration first.');
+    }
+    final id = _uuid.v4();
+    await db.into(db.localEvents).insert(LocalEventsCompanion.insert(
+      id: id,
+      lineId: lineId,
+      equipmentId: equipmentId,
+      startedAt: startedAt,
+      reasonId: Value(reasonId),
+      note: Value(note),
+      endedAt: Value(endedAt),
+    ));
+  }
+
+  /// Returns the most recent resolved event within the last 8 hours, with
+  /// equipment name and reason label, or null.
+  Future<Map<String, dynamic>?> lastResolvedEvent() async {
+    final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 8));
+    final events = await (db.select(db.localEvents)
+          ..where((t) => t.endedAt.isNotNull() & t.endedAt.isBiggerThanValue(cutoff))
+          ..orderBy([(t) => OrderingTerm.desc(t.endedAt)])
+          ..limit(1))
+        .get();
+    if (events.isEmpty) return null;
+    final e = events.first;
+
+    final equip = await (db.select(db.cachedEquipment)
+          ..where((t) => t.id.equals(e.equipmentId)))
+        .getSingleOrNull();
+
+    CachedReason? reason;
+    if (e.reasonId != null) {
+      reason = await (db.select(db.cachedReasons)
+            ..where((t) => t.id.equals(e.reasonId!)))
+          .getSingleOrNull();
+    }
+
+    return {
+      'id': e.id,
+      'equipment_id': e.equipmentId,
+      'equipment_name': equip?.name ?? '—',
+      'reason_label': reason?.label ?? '—',
+      'started_at': e.startedAt,
+      'ended_at': e.endedAt!,
+    };
+  }
+
+  /// Updates reason and note on an existing event, marks it for re-sync.
+  Future<void> updateEventReason({
+    required String eventId,
+    required String reasonId,
+    String? note,
+  }) async {
+    await (db.update(db.localEvents)..where((t) => t.id.equals(eventId))).write(
+      LocalEventsCompanion(
+        reasonId: Value(reasonId),
+        note: Value(note),
+        synced: const Value(false),
+      ),
+    );
+  }
+
   /// Resolved-but-not-yet-synced events.
   Future<List<LocalEvent>> unsyncedEvents() {
     return (db.select(db.localEvents)

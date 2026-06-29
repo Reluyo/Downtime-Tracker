@@ -16,6 +16,24 @@ export type UserRole = Tables<'user_roles'>;
 export interface DowntimeEventRow extends DowntimeEvent {
   equipment_name: string;
   reason_label: string | null;
+  deleted_at: string | null;
+  updated_at: string;
+}
+
+export interface Shift {
+  id: string;
+  line_id: string;
+  name: string;
+  start_hour: number;
+  end_hour: number;
+  display_order: number;
+}
+
+export interface OpenEvent {
+  id: string;
+  equipment_id: string;
+  equipment_name: string;
+  started_at: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -170,6 +188,8 @@ function mapEventRows(data: Record<string, unknown>[]): DowntimeEventRow[] {
       duration_seconds: r.duration_seconds as number | null,
       synced: r.synced as boolean,
       created_at: r.created_at as string,
+      deleted_at: r.deleted_at as string | null,
+      updated_at: r.updated_at as string,
       equipment_name: equipment?.name ?? '—',
       reason_label: reasonObj?.label ?? null,
     };
@@ -178,7 +198,7 @@ function mapEventRows(data: Record<string, unknown>[]): DowntimeEventRow[] {
 
 const EVENT_SELECT =
   'id, line_id, equipment_id, reason_id, note, started_at, ended_at, ' +
-  'duration_seconds, synced, created_at, ' +
+  'duration_seconds, synced, created_at, deleted_at, updated_at, ' +
   'equipment ( name ), downtime_reasons ( label )';
 
 function applyEventFilters(
@@ -204,6 +224,7 @@ export async function getEvents(
     .from('downtime_events')
     .select(EVENT_SELECT, { count: 'exact' })
     .eq('line_id', filters.lineId)
+    .is('deleted_at', null)
     .order('started_at', { ascending: false })
     .range(from, to);
 
@@ -224,6 +245,7 @@ export async function getAllEvents(filters: EventFilters): Promise<DowntimeEvent
     .from('downtime_events')
     .select(EVENT_SELECT)
     .eq('line_id', filters.lineId)
+    .is('deleted_at', null)
     .order('started_at', { ascending: false });
 
   query = applyEventFilters(query, filters);
@@ -234,20 +256,32 @@ export async function getAllEvents(filters: EventFilters): Promise<DowntimeEvent
   return mapEventRows((data ?? []) as unknown as Record<string, unknown>[]);
 }
 
-/** Update event — duration_seconds is omitted because the server trigger computes it. */
+/** Update event — duration_seconds is omitted because the server trigger computes it.
+ *  Pass expectedUpdatedAt for optimistic concurrency control. */
 export async function updateEvent(
   id: string,
   patch: Omit<TablesUpdate<'downtime_events'>, 'duration_seconds'>,
+  expectedUpdatedAt?: string,
 ): Promise<void> {
-  const { error } = await supabase
+  let query = supabase
     .from('downtime_events')
     .update(patch)
     .eq('id', id);
+  if (expectedUpdatedAt) {
+    query = query.eq('updated_at', expectedUpdatedAt);
+  }
+  const { data, error } = await query.select('id');
   if (error) throw error;
+  if (expectedUpdatedAt && (!data || data.length === 0)) {
+    throw new Error('This event was modified by another user. Please close and reopen to see the latest version.');
+  }
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-  const { error } = await supabase.from('downtime_events').delete().eq('id', id);
+  const { error } = await supabase
+    .from('downtime_events')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id);
   if (error) throw error;
 }
 
@@ -351,4 +385,52 @@ export async function getReportSummary(
   if (error) throw error;
   const arr = (data ?? []) as ReportSummary[];
   return arr[0] ?? { total_seconds: 0, event_count: 0 };
+}
+
+// ---------------------------------------------------------------------------
+// Shifts
+// ---------------------------------------------------------------------------
+
+export async function getShifts(lineId: string): Promise<Shift[]> {
+  const { data, error } = await supabase
+    .from('shifts')
+    .select('*')
+    .eq('line_id', lineId)
+    .order('display_order');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createShift(input: {
+  line_id: string;
+  name: string;
+  start_hour: number;
+  end_hour: number;
+  display_order: number;
+}): Promise<void> {
+  const { error } = await supabase.from('shifts').insert(input);
+  if (error) throw error;
+}
+
+export async function updateShift(
+  id: string,
+  patch: Partial<Pick<Shift, 'name' | 'start_hour' | 'end_hour' | 'display_order'>>,
+): Promise<void> {
+  const { error } = await supabase.from('shifts').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteShift(id: string): Promise<void> {
+  const { error } = await supabase.from('shifts').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Open events (currently down)
+// ---------------------------------------------------------------------------
+
+export async function getOpenEvents(lineId: string): Promise<OpenEvent[]> {
+  const { data, error } = await supabase.rpc('open_events', { p_line_id: lineId });
+  if (error) throw error;
+  return (data ?? []) as OpenEvent[];
 }
