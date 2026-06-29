@@ -11,6 +11,7 @@ import EquipmentPage from './pages/EquipmentPage';
 import ReasonsPage from './pages/ReasonsPage';
 import ConfigPage from './pages/ConfigPage';
 import ReportsPage from './pages/ReportsPage';
+import UsersPage from './pages/UsersPage';
 
 /** Guard that redirects viewers away from admin-only routes. */
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -69,6 +70,14 @@ export default function App() {
                 element={
                   <AdminRoute>
                     <ConfigPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <AdminRoute>
+                    <UsersPage />
                   </AdminRoute>
                 }
               />

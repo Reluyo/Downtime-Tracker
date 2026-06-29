@@ -434,3 +434,55 @@ export async function getOpenEvents(lineId: string): Promise<OpenEvent[]> {
   if (error) throw error;
   return (data ?? []) as OpenEvent[];
 }
+
+// ---------------------------------------------------------------------------
+// User management (via edge function)
+// ---------------------------------------------------------------------------
+
+export interface ManagedUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'viewer';
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
+async function callManageUsers(method: string, body?: Record<string, unknown>, params?: Record<string, string>): Promise<unknown> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  let url = `${supabaseUrl}/functions/v1/manage-users`;
+  if (params) {
+    url += '?' + new URLSearchParams(params).toString();
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error ?? `Request failed (${res.status})`);
+  return json;
+}
+
+export async function listUsers(): Promise<ManagedUser[]> {
+  return (await callManageUsers('GET')) as ManagedUser[];
+}
+
+export async function createUser(email: string, password: string, role: 'admin' | 'viewer'): Promise<void> {
+  await callManageUsers('POST', { email, password, role });
+}
+
+export async function updateUser(userId: string, patch: { role?: string; password?: string }): Promise<void> {
+  await callManageUsers('PUT', { user_id: userId, ...patch });
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await callManageUsers('DELETE', undefined, { user_id: userId });
+}

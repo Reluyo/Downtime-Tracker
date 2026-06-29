@@ -13,6 +13,7 @@ import {
   IconSignOut,
   IconSliders,
   IconTag,
+  IconUsers,
 } from './Icons';
 import styles from './Layout.module.css';
 
@@ -26,6 +27,7 @@ const NAV: {
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
   { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
+  { to: '/users', label: 'Users', Icon: IconUsers, adminOnly: true },
   { to: '/reports', label: 'Reports', Icon: IconReports },
 ];
 
