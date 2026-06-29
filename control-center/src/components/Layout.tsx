@@ -34,7 +34,7 @@ const NAV: {
 ];
 
 export default function Layout({ session }: { session: Session }) {
-  const { lines, line, setLineId } = useLine();
+  const { line } = useLine();
   const { isAdmin } = useRole();
 
   const visibleNav = NAV.filter((n) => !n.adminOnly || isAdmin);
@@ -45,19 +45,7 @@ export default function Layout({ session }: { session: Session }) {
         <div className={styles.headerLeft}>
           <span className="brand-dot" />
           <h1>PRSA Downtime</h1>
-          {lines.length > 1 ? (
-            <select
-              className={styles.lineSelect}
-              value={line?.id ?? ''}
-              onChange={(e) => setLineId(e.target.value)}
-            >
-              {lines.map((l) => (
-                <option key={l.id} value={l.id}>{l.short_name}</option>
-              ))}
-            </select>
-          ) : (
-            line && <span className={styles.lineChip}>{line.short_name}</span>
-          )}
+          {line && <span className={styles.lineChip}>{line.short_name}</span>}
         </div>
         <div className={styles.headerRight}>
           <span className={styles.userEmail}>{session.user.email}</span>
