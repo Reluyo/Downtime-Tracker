@@ -6,7 +6,7 @@ import AstemoLogo from './AstemoLogo';
  * Admin login via Supabase Auth (email + password).
  */
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -15,8 +15,11 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    const email = username.includes('@') ? username : `${username}@astemo.local`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
+    if (error) {
+      setError('Invalid username or password. Please try again.');
+    }
     setSubmitting(false);
   }
 
@@ -34,12 +37,14 @@ export default function Login() {
 
         {error && <div className="error">{error}</div>}
 
-        <label htmlFor="email">Email</label>
+        <label htmlFor="username">Email</label>
         <input
-          id="email"
+          id="username"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="username"
+          placeholder="you@astemo.com"
           required
         />
 
@@ -49,6 +54,7 @@ export default function Login() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
           required
         />
 
