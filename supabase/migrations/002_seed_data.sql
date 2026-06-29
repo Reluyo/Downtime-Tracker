@@ -1,5 +1,5 @@
 -- ============================================================================
--- PRSA Downtime Tracker — Seed Data
+-- Astemo Downtime Tracker — Seed Data
 -- Migration 002
 -- ============================================================================
 -- Seeds the "Piston Rod Sub Assembly 2" (PRSA 2) line, its 7 pieces of

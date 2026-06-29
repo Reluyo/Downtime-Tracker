@@ -1,6 +1,6 @@
 name: Build Tablet APK
 
-# Builds an installable Android APK for the PRSA tablet app so you don't need
+# Builds an installable Android APK for the Astemo tablet app so you don't need
 # a local Flutter setup. Download the artifact from the run summary, then
 # sideload it onto the Fire tablet.
 #

@@ -1,4 +1,4 @@
-# PRSA Downtime Tracker
+# Astemo Downtime Tracker
 
 A manufacturing downtime tracking system for the Piston Rod Sub Assembly 2 (PRSA 2) production line.
 

@@ -1,5 +1,5 @@
 -- ============================================================================
--- PRSA Downtime Tracker — Initial Schema
+-- Astemo Downtime Tracker — Initial Schema
 -- Migration 001
 -- ============================================================================
 -- Creates the core tables, indexes, and Row Level Security policies.

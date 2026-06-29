@@ -1,4 +1,4 @@
-# PRODUCT_SPEC.md — PRSA Downtime Tracker
+# PRODUCT_SPEC.md — Astemo Downtime Tracker
 
 ## Overview
 
