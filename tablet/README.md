@@ -74,11 +74,6 @@ assets/sounds/alert.wav             Bundled alert tone
 
 This code was authored without a local Flutter SDK, so it has **not** been
 compiled here. Easiest way to get a buildable APK: the **Build Tablet APK**
-GitHub Actions workflow runs codegen and produces a downloadable APK artifact
-on every push. For a backend-connected APK, add repository secrets
-`SUPABASE_URL` and `SUPABASE_ANON_KEY`.
-
-> The workflow ships at `ci/tablet-build.yml` and must be moved to
-> `.github/workflows/tablet-build.yml` to activate it (it couldn't be committed
-> there automatically — the session token lacked the GitHub `workflow` scope).
-> See the header of that file for the one-step instructions.
+GitHub Actions workflow (`.github/workflows/tablet-build.yml`) runs codegen and
+produces a downloadable APK artifact on every push. For a backend-connected
+APK, add repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
