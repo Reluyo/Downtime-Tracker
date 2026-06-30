@@ -16,6 +16,9 @@ export default function ConfigPage() {
   const { line } = useLine();
   const [threshold, setThreshold] = useState('60');
   const [repeat, setRepeat] = useState('15');
+  const [notifyEnabled, setNotifyEnabled] = useState(false);
+  const [notifyThreshold, setNotifyThreshold] = useState('60');
+  const [notifyEmails, setNotifyEmails] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +39,9 @@ export default function ConfigPage() {
         if (cfg) {
           setThreshold(String(cfg.alert_threshold_minutes));
           setRepeat(String(cfg.alert_repeat_minutes));
+          setNotifyEnabled(cfg.notify_enabled);
+          setNotifyThreshold(String(cfg.notify_threshold_minutes));
+          setNotifyEmails((cfg.notify_emails ?? []).join(', '));
         }
       }),
       getShifts(line.id).then(setShifts),
@@ -53,6 +59,12 @@ export default function ConfigPage() {
       await saveConfig(line.id, {
         alert_threshold_minutes: Math.max(1, Number(threshold)),
         alert_repeat_minutes: Math.max(1, Number(repeat)),
+        notify_enabled: notifyEnabled,
+        notify_threshold_minutes: Math.max(1, Number(notifyThreshold)),
+        notify_emails: notifyEmails
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean),
       });
       setSaved(true);
     } catch (e) {
@@ -96,6 +108,60 @@ export default function ConfigPage() {
             value={repeat}
             onChange={(e) => {
               setRepeat(e.target.value);
+              setSaved(false);
+            }}
+          />
+        </label>
+        <button className="btn-primary" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+        {saved && (
+          <span className="saved-note">
+            <IconCheck /> Saved
+          </span>
+        )}
+      </div>
+
+      <hr style={{ borderColor: 'var(--border)', margin: '32px 0' }} />
+
+      <h2>Extended Downtime Notifications</h2>
+      <p className="hint">
+        Sends an email when this line is down past the threshold below. Recipients are the
+        global list (see Notifications page) plus any line-specific addresses entered here.
+        Re-sends follow the same repeat interval as the tablet alert above, until the event ends.
+      </p>
+
+      <div className="config-form">
+        <label>
+          <input
+            type="checkbox"
+            checked={notifyEnabled}
+            onChange={(e) => {
+              setNotifyEnabled(e.target.checked);
+              setSaved(false);
+            }}
+          />{' '}
+          Enable email notifications for this line
+        </label>
+        <label>
+          Notify threshold (minutes)
+          <input
+            type="number"
+            min={1}
+            value={notifyThreshold}
+            onChange={(e) => {
+              setNotifyThreshold(e.target.value);
+              setSaved(false);
+            }}
+          />
+        </label>
+        <label>
+          Line-specific recipient emails (comma-separated)
+          <input
+            value={notifyEmails}
+            placeholder="supervisor@example.com, lead@example.com"
+            onChange={(e) => {
+              setNotifyEmails(e.target.value);
               setSaved(false);
             }}
           />

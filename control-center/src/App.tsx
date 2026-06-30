@@ -7,6 +7,7 @@ import { RoleProvider, useRole } from './lib/RoleContext';
 import Login from './components/Login';
 import ChangePassword from './components/ChangePassword';
 import Layout from './components/Layout';
+import DashboardPage from './pages/DashboardPage';
 import HistoryPage from './pages/HistoryPage';
 import EquipmentPage from './pages/EquipmentPage';
 import ReasonsPage from './pages/ReasonsPage';
@@ -14,6 +15,7 @@ import ConfigPage from './pages/ConfigPage';
 import ReportsPage from './pages/ReportsPage';
 import UsersPage from './pages/UsersPage';
 import LinesPage from './pages/LinesPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 /** Guard that redirects viewers away from admin-only routes. */
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -59,6 +61,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<Layout session={session} />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/history" element={<HistoryPage />} />
               <Route
                 path="/equipment"
@@ -101,7 +104,15 @@ export default function App() {
                 }
               />
               <Route path="/reports" element={<ReportsPage />} />
-              <Route path="*" element={<Navigate to="/history" replace />} />
+              <Route
+                path="/notifications"
+                element={
+                  <AdminRoute>
+                    <NotificationsPage />
+                  </AdminRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
         </BrowserRouter>

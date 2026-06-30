@@ -7,6 +7,8 @@ import { useRole } from '../lib/RoleContext';
 import AstemoLogo from './AstemoLogo';
 import ErrorBoundary from './ErrorBoundary';
 import {
+  IconBell,
+  IconDashboard,
   IconEquipment,
   IconHistory,
   IconLines,
@@ -24,11 +26,13 @@ const NAV: {
   Icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
   adminOnly?: boolean;
 }[] = [
+  { to: '/dashboard', label: 'Dashboard', Icon: IconDashboard },
   { to: '/history', label: 'History', Icon: IconHistory },
   { to: '/lines', label: 'Lines', Icon: IconLines, adminOnly: true },
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
   { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
+  { to: '/notifications', label: 'Notifications', Icon: IconBell, adminOnly: true },
   { to: '/users', label: 'Users', Icon: IconUsers, adminOnly: true },
   { to: '/reports', label: 'Reports', Icon: IconReports },
 ];

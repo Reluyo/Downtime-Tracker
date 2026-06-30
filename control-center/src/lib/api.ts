@@ -11,6 +11,7 @@ export type DowntimeReason = Tables<'downtime_reasons'>;
 export type AppConfig = Tables<'app_config'>;
 export type DowntimeEvent = Tables<'downtime_events'>;
 export type UserRole = Tables<'user_roles'>;
+export type GlobalNotificationEmail = Tables<'global_notification_emails'>;
 
 /** A downtime event joined with its equipment + reason labels, for display. */
 export interface DowntimeEventRow extends DowntimeEvent {
@@ -162,12 +163,41 @@ export async function getConfig(lineId: string): Promise<AppConfig | null> {
 
 export async function saveConfig(
   lineId: string,
-  values: { alert_threshold_minutes: number; alert_repeat_minutes: number },
+  values: {
+    alert_threshold_minutes: number;
+    alert_repeat_minutes: number;
+    notify_enabled: boolean;
+    notify_threshold_minutes: number;
+    notify_emails: string[];
+  },
 ): Promise<void> {
   const { error } = await supabase
     .from('app_config')
     .update({ ...values, updated_at: new Date().toISOString() })
     .eq('line_id', lineId);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Notification recipients (global)
+// ---------------------------------------------------------------------------
+
+export async function getGlobalEmails(): Promise<GlobalNotificationEmail[]> {
+  const { data, error } = await supabase
+    .from('global_notification_emails')
+    .select('*')
+    .order('created_at');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function addGlobalEmail(email: string): Promise<void> {
+  const { error } = await supabase.from('global_notification_emails').insert({ email });
+  if (error) throw error;
+}
+
+export async function deleteGlobalEmail(id: string): Promise<void> {
+  const { error } = await supabase.from('global_notification_emails').delete().eq('id', id);
   if (error) throw error;
 }
 
@@ -420,6 +450,28 @@ export async function getReportSummary(
   if (error) throw error;
   const arr = (data ?? []) as ReportSummary[];
   return arr[0] ?? { total_seconds: 0, event_count: 0 };
+}
+
+export interface LineAvailability {
+  planned_seconds: number;
+  downtime_seconds: number;
+  availability_pct: number | null;
+}
+
+/** Availability OEE (Run Time / Planned Production Time) for a date range. */
+export async function getLineAvailability(
+  lineId: string,
+  start: string,
+  end: string,
+): Promise<LineAvailability> {
+  const { data, error } = await supabase.rpc('line_availability', {
+    p_line_id: lineId,
+    p_start: start,
+    p_end: end,
+  });
+  if (error) throw error;
+  const arr = (data ?? []) as LineAvailability[];
+  return arr[0] ?? { planned_seconds: 0, downtime_seconds: 0, availability_pct: null };
 }
 
 // ---------------------------------------------------------------------------
