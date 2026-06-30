@@ -8,8 +8,8 @@ import '../data/repository.dart';
 enum SyncStatus { synced, pending, error }
 
 /// Drives offline sync. Listens for connectivity changes and, when online,
-/// refreshes reference data and pushes any closed-but-unsynced events to
-/// Supabase. Exposes a [status] and [lastError] for the home-screen indicator.
+/// refreshes reference data and pushes any unsynced events (open or closed)
+/// to Supabase. Exposes a [status] and [lastError] for the home-screen indicator.
 class SyncService extends ChangeNotifier {
   SyncService(this._repo);
 

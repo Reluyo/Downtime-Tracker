@@ -153,7 +153,12 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
   }
 
   void _goToReason() {
-    Navigator.of(context).pushReplacement(
+    // Use push (not pushReplacement): replacing this route completes the
+    // caller's awaited push() immediately, before the event is resolved,
+    // causing the home screen to refresh its "last entry" card too early.
+    // Keeping this route on the stack lets ReasonScreen's popUntil(isFirst)
+    // complete that await only after resolveEvent() has actually run.
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ReasonScreen(event: widget.event, equipment: widget.equipment),
       ),

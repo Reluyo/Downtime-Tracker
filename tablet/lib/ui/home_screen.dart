@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../data/local/database.dart';
@@ -189,7 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _onEquipmentTap(CachedEquipmentData equipment) async {
-    final event = await ServiceProvider.of(context).repository.startEvent(equipment.id);
+    final sp = ServiceProvider.of(context);
+    final event = await sp.repository.startEvent(equipment.id);
+    // Best-effort immediate push so the control center shows "down" right
+    // away instead of waiting for the next periodic sync.
+    unawaited(sp.syncService.syncNow());
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(

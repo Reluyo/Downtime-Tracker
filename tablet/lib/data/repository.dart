@@ -206,6 +206,7 @@ class DowntimeRepository {
         reasonId: Value(reasonId),
         note: Value(note),
         endedAt: Value(endedAt),
+        synced: const Value(false),
       ),
     );
   }
@@ -287,11 +288,11 @@ class DowntimeRepository {
     );
   }
 
-  /// Resolved-but-not-yet-synced events.
+  /// Unsynced events, open or closed. Open events are pushed immediately so
+  /// the control center can show them as down in real time; they're pushed
+  /// again once resolved to send the final reason/ended_at.
   Future<List<LocalEvent>> unsyncedEvents() {
-    return (db.select(db.localEvents)
-          ..where((t) => t.synced.equals(false) & t.endedAt.isNotNull()))
-        .get();
+    return (db.select(db.localEvents)..where((t) => t.synced.equals(false))).get();
   }
 
   Future<void> markSynced(String eventId) async {
@@ -299,7 +300,7 @@ class DowntimeRepository {
         .write(const LocalEventsCompanion(synced: Value(true)));
   }
 
-  /// Pushes a single closed event to Supabase. Throws on failure.
+  /// Pushes a single event (open or closed) to Supabase. Throws on failure.
   /// Note: duration_seconds is NOT sent — the server computes it from
   /// started_at and ended_at via a trigger (migration 003).
   Future<void> pushEvent(LocalEvent e) async {
