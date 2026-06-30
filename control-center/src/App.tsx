@@ -15,7 +15,6 @@ import ConfigPage from './pages/ConfigPage';
 import ReportsPage from './pages/ReportsPage';
 import UsersPage from './pages/UsersPage';
 import LinesPage from './pages/LinesPage';
-import NotificationsPage from './pages/NotificationsPage';
 
 /** Guard that redirects viewers away from admin-only routes. */
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -104,14 +103,6 @@ export default function App() {
                 }
               />
               <Route path="/reports" element={<ReportsPage />} />
-              <Route
-                path="/notifications"
-                element={
-                  <AdminRoute>
-                    <NotificationsPage />
-                  </AdminRoute>
-                }
-              />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
