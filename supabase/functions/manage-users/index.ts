@@ -99,9 +99,9 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      if (password.length < 12) {
+      if (password.length < 8) {
         return new Response(
-          JSON.stringify({ error: "Password must be at least 12 characters" }),
+          JSON.stringify({ error: "Password must be at least 8 characters" }),
           {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -154,9 +154,9 @@ Deno.serve(async (req: Request) => {
       }
 
       if (password) {
-        if (password.length < 12) {
+        if (password.length < 8) {
           return new Response(
-            JSON.stringify({ error: "Password must be at least 12 characters" }),
+            JSON.stringify({ error: "Password must be at least 8 characters" }),
             {
               status: 400,
               headers: { ...corsHeaders, "Content-Type": "application/json" },

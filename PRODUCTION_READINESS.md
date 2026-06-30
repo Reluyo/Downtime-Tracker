@@ -35,7 +35,7 @@ within first week, **P2** = backlog.
 ### P0 — fix before go-live
 - [ ] Confirm Supabase automated backups / point-in-time recovery are enabled
       (Dashboard → Settings → Backups) and write down the restore procedure.
-- [x] Raise admin password minimum from 6 to 12 characters (`UsersPage.tsx`,
+- [x] Raise admin password minimum from 6 to 8 characters (`UsersPage.tsx`,
       `manage-users` edge function `ChangePassword.tsx`).
 - [x] Add request timeouts to the Supabase client on both apps so a hung
       network call can't block the UI forever.
@@ -98,7 +98,7 @@ within first week, **P2** = backlog.
 
 ## Changes made in this pass
 
-- Raised the admin password minimum to 12 characters in `UsersPage.tsx` and
+- Raised the admin password minimum to 8 characters in `UsersPage.tsx` and
   `ChangePassword.tsx`.
 - Added explicit request timeouts to the Supabase client config on both the
   tablet (`supabase.dart`) and control center (`supabaseClient.ts`).

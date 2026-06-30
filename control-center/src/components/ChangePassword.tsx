@@ -17,8 +17,8 @@ export default function ChangePassword({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 12) {
-      setError('Password must be at least 12 characters.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
       return;
     }
     if (password !== confirm) {
@@ -59,7 +59,7 @@ export default function ChangePassword({ onDone }: { onDone: () => void }) {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          minLength={12}
+          minLength={8}
           required
         />
 
