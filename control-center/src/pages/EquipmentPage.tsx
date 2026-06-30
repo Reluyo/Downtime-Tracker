@@ -54,7 +54,7 @@ export default function EquipmentPage() {
       await updateEquipment(id, patch);
       await load();
     } catch (e) {
-      alert(`Update failed: ${e instanceof Error ? e.message : e}`);
+      setError(`Update failed: ${e instanceof Error ? e.message : e}`);
     }
   }
 

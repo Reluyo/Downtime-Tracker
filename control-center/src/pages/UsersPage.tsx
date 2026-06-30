@@ -7,6 +7,7 @@ import {
 } from '../lib/api';
 import type { ManagedUser } from '../lib/api';
 import { IconCheck } from '../components/Icons';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<ManagedUser[]>([]);
@@ -134,6 +135,8 @@ function UserRow({ user, onChanged }: { user: ManagedUser; onChanged: () => void
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const roleDirty = role !== user.role;
   const passDirty = newPassword.length > 0;
@@ -142,6 +145,7 @@ function UserRow({ user, onChanged }: { user: ManagedUser; onChanged: () => void
   async function handleSave() {
     setSaving(true);
     setSaved(false);
+    setError(null);
     try {
       const patch: { role?: string; password?: string } = {};
       if (roleDirty) patch.role = role;
@@ -151,19 +155,20 @@ function UserRow({ user, onChanged }: { user: ManagedUser; onChanged: () => void
       setSaved(true);
       onChanged();
     } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete() {
-    if (!confirm(`Delete user "${user.email}"? This cannot be undone.`)) return;
+  async function confirmDelete() {
+    setConfirmingDelete(false);
+    setError(null);
     try {
       await deleteUser(user.id);
       onChanged();
     } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
+      setError(e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -172,31 +177,50 @@ function UserRow({ user, onChanged }: { user: ManagedUser; onChanged: () => void
     : 'Never';
 
   return (
-    <tr>
-      <td>{user.email}</td>
-      <td>
-        <select value={role} onChange={(e) => { setRole(e.target.value as 'admin' | 'viewer'); setSaved(false); }}>
-          <option value="viewer">Viewer</option>
-          <option value="admin">Admin</option>
-        </select>
-      </td>
-      <td>{lastSignIn}</td>
-      <td>
-        <input
-          type="password"
-          value={newPassword}
-          onChange={(e) => { setNewPassword(e.target.value); setSaved(false); }}
-          placeholder="new…"
-          style={{ width: 80 }}
+    <>
+      <tr>
+        <td>{user.email}</td>
+        <td>
+          <select value={role} onChange={(e) => { setRole(e.target.value as 'admin' | 'viewer'); setSaved(false); }}>
+            <option value="viewer">Viewer</option>
+            <option value="admin">Admin</option>
+          </select>
+        </td>
+        <td>{lastSignIn}</td>
+        <td>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => { setNewPassword(e.target.value); setSaved(false); }}
+            placeholder="new…"
+            style={{ width: 80 }}
+          />
+        </td>
+        <td className="actions">
+          <button className="btn-link-dark" disabled={!dirty || saving} onClick={handleSave}>
+            {saving ? '…' : 'Save'}
+          </button>
+          {saved && <span style={{ color: 'var(--ok)' }}><IconCheck /></span>}
+          <button className="btn-link-danger" onClick={() => setConfirmingDelete(true)}>Delete</button>
+        </td>
+      </tr>
+      {error && (
+        <tr>
+          <td colSpan={5}>
+            <div className="error">{error}</div>
+          </td>
+        </tr>
+      )}
+      {confirmingDelete && (
+        <ConfirmDialog
+          title="Delete user"
+          message={`Delete user "${user.email}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          danger
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmingDelete(false)}
         />
-      </td>
-      <td className="actions">
-        <button className="btn-link-dark" disabled={!dirty || saving} onClick={handleSave}>
-          {saving ? '…' : 'Save'}
-        </button>
-        {saved && <span style={{ color: 'var(--ok)' }}><IconCheck /></span>}
-        <button className="btn-link-danger" onClick={handleDelete}>Delete</button>
-      </td>
-    </tr>
+      )}
+    </>
   );
 }

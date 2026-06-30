@@ -20,6 +20,7 @@ import {
 } from '../lib/format';
 import styles from './History.module.css';
 import LineSelectHeading from '../components/LineSelectHeading';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 function isoToLocalInput(iso: string | null): string {
   if (!iso) return '';
@@ -55,6 +56,7 @@ export default function HistoryPage() {
 
   const [editing, setEditing] = useState<DowntimeEventRow | null>(null);
   const [openEvents, setOpenEvents] = useState<OpenEvent[]>([]);
+  const [archiving, setArchiving] = useState<DowntimeEventRow | null>(null);
 
   useEffect(() => {
     if (!line) return;
@@ -140,16 +142,20 @@ export default function HistoryPage() {
     [equipment],
   );
 
-  async function handleDelete(row: DowntimeEventRow) {
-    if (!confirm(`Archive this ${row.equipment_name} event? It will be hidden from views.`)) {
-      return;
-    }
+  function handleDelete(row: DowntimeEventRow) {
+    setArchiving(row);
+  }
+
+  async function confirmArchive() {
+    if (!archiving) return;
+    const row = archiving;
+    setArchiving(null);
     try {
       await deleteEvent(row.id);
       setEvents((prev) => prev.filter((e) => e.id !== row.id));
       setTotalCount((c) => c - 1);
     } catch (e) {
-      alert(`Delete failed: ${e instanceof Error ? e.message : e}`);
+      setError(`Archive failed: ${e instanceof Error ? e.message : e}`);
     }
   }
 
@@ -263,7 +269,7 @@ export default function HistoryPage() {
                         Edit
                       </button>
                       <button className="btn-link-danger" onClick={() => handleDelete(e)}>
-                        Delete
+                        Archive
                       </button>
                     </td>
                   )}
@@ -301,6 +307,17 @@ export default function HistoryPage() {
             setEditing(null);
             load();
           }}
+        />
+      )}
+
+      {archiving && (
+        <ConfirmDialog
+          title="Archive event"
+          message={`Archive this ${archiving.equipment_name} event? It will be hidden from views.`}
+          confirmLabel="Archive"
+          danger
+          onConfirm={confirmArchive}
+          onCancel={() => setArchiving(null)}
         />
       )}
     </section>
@@ -376,7 +393,12 @@ function EditEventModal({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3>Edit event</h3>
         {error && <div className="error">{error}</div>}
 

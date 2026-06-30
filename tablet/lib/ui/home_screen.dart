@@ -84,21 +84,29 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_lineName),
-        leading: IconButton(
-          icon: const Icon(Icons.swap_horiz),
-          tooltip: 'Change Line',
-          onPressed: _onChangeLine,
+        leading: Semantics(
+          label: 'Change line',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: 'Change Line',
+            onPressed: _onChangeLine,
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.post_add),
-            tooltip: 'Log Past Event',
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PastEventScreen()),
-              );
-              if (mounted) setState(_load);
-            },
+          Semantics(
+            label: 'Log past event',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.post_add),
+              tooltip: 'Log Past Event',
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PastEventScreen()),
+                );
+                if (mounted) setState(_load);
+              },
+            ),
           ),
           AnimatedBuilder(
             animation: ServiceProvider.of(context).syncService,

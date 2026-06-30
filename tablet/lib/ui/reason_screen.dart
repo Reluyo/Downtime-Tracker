@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/local/database.dart';
 import '../service_provider.dart';
 import 'other_note_screen.dart';
+import 'theme.dart';
 import 'widgets/astemo_logo.dart';
 
 /// Step 4 — Reason. Grid of reason codes for the equipment. Tapping a reason
@@ -112,6 +113,7 @@ class _ReasonScreenState extends State<ReasonScreen> {
             child: const Text('Stay', style: TextStyle(fontSize: 18)),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AstemoColors.error),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Discard', style: TextStyle(fontSize: 18)),
           ),

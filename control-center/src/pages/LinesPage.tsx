@@ -33,7 +33,7 @@ export default function LinesPage() {
       await updateLine(id, patch);
       await refreshLines();
     } catch (e) {
-      alert(`Update failed: ${e instanceof Error ? e.message : e}`);
+      setError(`Update failed: ${e instanceof Error ? e.message : e}`);
     }
   }
 
