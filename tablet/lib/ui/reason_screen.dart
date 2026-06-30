@@ -38,6 +38,11 @@ class _ReasonScreenState extends State<ReasonScreen> {
         appBar: AppBar(
           title: const Text('What was the reason?'),
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Back',
+            onPressed: _confirmBack,
+          ),
           actions: const [AstemoAppBarLogo()],
         ),
         body: FutureBuilder<List<CachedReason>>(
@@ -47,6 +52,29 @@ class _ReasonScreenState extends State<ReasonScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             final reasons = snapshot.data!;
+            if (reasons.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'No reason codes are configured for this equipment.\n'
+                        'Add some in the Control Center, or go back.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _confirmBack,
+                        child: const Text('Back'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
             return GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -68,6 +96,32 @@ class _ReasonScreenState extends State<ReasonScreen> {
         ),
       ),
     );
+  }
+
+  /// The event is already open (started) at this stage; going back discards
+  /// it rather than leaving an orphaned open event with no way to resolve it.
+  Future<void> _confirmBack() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Are you sure?'),
+        content: const Text('This will discard the event.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Stay', style: TextStyle(fontSize: 18)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Discard', style: TextStyle(fontSize: 18)),
+          ),
+        ],
+      ),
+    );
+    if (discard != true) return;
+    final sp = ServiceProvider.of(context);
+    await sp.repository.discardEvent(widget.event.id);
+    if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _onReasonTap(CachedReason reason) async {

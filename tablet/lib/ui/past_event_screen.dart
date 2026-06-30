@@ -146,21 +146,35 @@ class _PastEventScreenState extends State<PastEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_step == 0
-            ? 'Log Past Event'
-            : _step == 1
-                ? 'Set Times'
-                : 'Select Reason'),
-        actions: const [AstemoAppBarLogo()],
-      ),
-      body: switch (_step) {
-        0 => _buildEquipmentStep(),
-        1 => _buildTimesStep(),
-        2 => _buildReasonStep(),
-        _ => const SizedBox.shrink(),
+    return PopScope(
+      canPop: _step == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        setState(() => _step -= 1);
       },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_step == 0
+              ? 'Log Past Event'
+              : _step == 1
+                  ? 'Set Times'
+                  : 'Select Reason'),
+          leading: _step > 0
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Back',
+                  onPressed: () => setState(() => _step -= 1),
+                )
+              : null,
+          actions: const [AstemoAppBarLogo()],
+        ),
+        body: switch (_step) {
+          0 => _buildEquipmentStep(),
+          1 => _buildTimesStep(),
+          2 => _buildReasonStep(),
+          _ => const SizedBox.shrink(),
+        },
+      ),
     );
   }
 

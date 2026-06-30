@@ -21,6 +21,7 @@ import {
   startOfDayIso,
 } from '../lib/format';
 import styles from './Reports.module.css';
+import LineSelectHeading from '../components/LineSelectHeading';
 
 export default function ReportsPage() {
   const { line } = useLine();
@@ -101,7 +102,7 @@ export default function ReportsPage() {
 
   return (
     <section>
-      <h2>Reports --- {line.short_name}</h2>
+      <LineSelectHeading title="Reports" />
 
       <div className="filters">
         <label>

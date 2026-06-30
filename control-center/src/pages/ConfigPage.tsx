@@ -10,6 +10,7 @@ import {
 } from '../lib/api';
 import type { Shift } from '../lib/api';
 import { IconCheck } from '../components/Icons';
+import LineSelectHeading from '../components/LineSelectHeading';
 
 export default function ConfigPage() {
   const { line } = useLine();
@@ -66,7 +67,7 @@ export default function ConfigPage() {
 
   return (
     <section>
-      <h2>Alert Configuration — {line.short_name}</h2>
+      <LineSelectHeading title="Alert Configuration" />
       <p className="hint">
         Controls the downtime alert on the tablet. After the threshold is reached, the
         tablet plays an alert and repeats it at the interval below until the event is closed.
@@ -111,7 +112,7 @@ export default function ConfigPage() {
 
       <hr style={{ borderColor: 'var(--border)', margin: '32px 0' }} />
 
-      <h2>Shifts — {line.short_name}</h2>
+      <h2>Shifts</h2>
       <p className="hint">
         Define production shifts. Hours use 24-hour format (e.g. 6 = 6 AM, 18 = 6 PM).
         Overnight shifts: set start &gt; end (e.g. 22–6).

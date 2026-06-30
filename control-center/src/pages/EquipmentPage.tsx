@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { createEquipment, getEquipment, updateEquipment } from '../lib/api';
 import type { Equipment } from '../lib/api';
+import LineSelectHeading from '../components/LineSelectHeading';
 
 export default function EquipmentPage() {
-  const { lines, line, setLineId } = useLine();
+  const { line } = useLine();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,22 +62,7 @@ export default function EquipmentPage() {
 
   return (
     <section>
-      <h2>
-        Equipment —{' '}
-        {lines.length > 1 ? (
-          <select
-            className="line-select-inline"
-            value={line.id}
-            onChange={(e) => setLineId(e.target.value)}
-          >
-            {lines.map((l) => (
-              <option key={l.id} value={l.id}>{l.short_name}</option>
-            ))}
-          </select>
-        ) : (
-          line.short_name
-        )}
-      </h2>
+      <LineSelectHeading title="Equipment" />
       {error && <div className="error">{error}</div>}
 
       <div className="add-row">

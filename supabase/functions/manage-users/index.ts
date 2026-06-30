@@ -103,6 +103,7 @@ Deno.serve(async (req: Request) => {
         email,
         password,
         email_confirm: true,
+        user_metadata: { must_change_password: true },
       });
       if (createErr) throw createErr;
 
@@ -145,6 +146,7 @@ Deno.serve(async (req: Request) => {
       if (password) {
         const { error: updateErr } = await admin.updateUserById(user_id, {
           password,
+          user_metadata: { must_change_password: true },
         });
         if (updateErr) throw updateErr;
       }

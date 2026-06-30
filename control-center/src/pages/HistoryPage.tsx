@@ -19,6 +19,7 @@ import {
   startOfDayIso,
 } from '../lib/format';
 import styles from './History.module.css';
+import LineSelectHeading from '../components/LineSelectHeading';
 
 function isoToLocalInput(iso: string | null): string {
   if (!iso) return '';
@@ -157,7 +158,7 @@ export default function HistoryPage() {
   return (
     <section>
       <div className={styles.titleRow}>
-        <h2>Downtime History</h2>
+        <LineSelectHeading title="Downtime History" />
         {liveConnected && (
           <span className={styles.liveBadge}>
             <span className={styles.liveDot} />
@@ -224,6 +225,7 @@ export default function HistoryPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th>Line</th>
                 <th>Started</th>
                 <th>Equipment</th>
                 <th>Duration</th>
@@ -236,13 +238,14 @@ export default function HistoryPage() {
             <tbody>
               {events.length === 0 && (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="empty">
+                  <td colSpan={isAdmin ? 8 : 7} className="empty">
                     No events match these filters.
                   </td>
                 </tr>
               )}
               {events.map((e) => (
                 <tr key={e.id}>
+                  <td>{line.short_name}</td>
                   <td>{formatDateTime(e.started_at)}</td>
                   <td>{e.equipment_name}</td>
                   <td>{formatDuration(e.duration_seconds)}</td>

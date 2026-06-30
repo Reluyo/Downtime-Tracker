@@ -1,33 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLine } from '../lib/LineContext';
-import { createLine, getLines, updateLine } from '../lib/api';
+import { createLine, updateLine } from '../lib/api';
 import type { Line } from '../lib/api';
 
 export default function LinesPage() {
-  const { setLineId } = useLine();
-  const [lines, setLines] = useState<Line[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { lines, loading, setLineId, refreshLines } = useLine();
   const [error, setError] = useState<string | null>(null);
 
   const [newName, setNewName] = useState('');
   const [newShortName, setNewShortName] = useState('');
   const [adding, setAdding] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setLines(await getLines());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   async function handleAdd() {
     if (!newName.trim() || !newShortName.trim()) return;
@@ -37,7 +19,7 @@ export default function LinesPage() {
       const created = await createLine({ name: newName.trim(), short_name: newShortName.trim() });
       setNewName('');
       setNewShortName('');
-      await load();
+      await refreshLines();
       setLineId(created.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -49,7 +31,7 @@ export default function LinesPage() {
   async function persist(id: string, patch: Partial<Line>) {
     try {
       await updateLine(id, patch);
-      await load();
+      await refreshLines();
     } catch (e) {
       alert(`Update failed: ${e instanceof Error ? e.message : e}`);
     }
@@ -65,12 +47,13 @@ export default function LinesPage() {
           placeholder="Line name"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
+          style={{ width: 280 }}
         />
         <input
           placeholder="Short name"
           value={newShortName}
           onChange={(e) => setNewShortName(e.target.value)}
-          style={{ width: 140 }}
+          style={{ width: 180 }}
         />
         <button
           className="btn-primary"
@@ -88,7 +71,7 @@ export default function LinesPage() {
           <thead>
             <tr>
               <th>Name</th>
-              <th style={{ width: 160 }}>Short Name</th>
+              <th style={{ width: 220 }}>Short Name</th>
               <th style={{ width: 100 }}></th>
             </tr>
           </thead>
@@ -123,10 +106,10 @@ function LineRow({
   return (
     <tr>
       <td>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
+        <input value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%' }} />
       </td>
       <td>
-        <input value={shortName} onChange={(e) => setShortName(e.target.value)} />
+        <input value={shortName} onChange={(e) => setShortName(e.target.value)} style={{ width: '100%' }} />
       </td>
       <td className="actions">
         <button

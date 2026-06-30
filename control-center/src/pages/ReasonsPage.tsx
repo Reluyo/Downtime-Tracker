@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import { createReason, getEquipment, getReasons, updateReason } from '../lib/api';
 import type { DowntimeReason, Equipment } from '../lib/api';
+import LineSelectHeading from '../components/LineSelectHeading';
 
 export default function ReasonsPage() {
   const { line } = useLine();
@@ -21,7 +22,7 @@ export default function ReasonsPage() {
     getEquipment(line.id, false)
       .then((eq) => {
         setEquipment(eq);
-        if (eq.length > 0) setEquipmentId((prev) => prev || eq[0].id);
+        setEquipmentId(eq.length > 0 ? eq[0].id : '');
       })
       .catch((e) => setError(e.message));
   }, [line]);
@@ -77,7 +78,7 @@ export default function ReasonsPage() {
 
   return (
     <section>
-      <h2>Reason Codes</h2>
+      <LineSelectHeading title="Reason Codes" />
 
       <label className="inline-label">
         Equipment

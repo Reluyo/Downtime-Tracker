@@ -5,6 +5,7 @@ import { supabase } from './lib/supabaseClient';
 import { LineProvider } from './lib/LineContext';
 import { RoleProvider, useRole } from './lib/RoleContext';
 import Login from './components/Login';
+import ChangePassword from './components/ChangePassword';
 import Layout from './components/Layout';
 import HistoryPage from './pages/HistoryPage';
 import EquipmentPage from './pages/EquipmentPage';
@@ -42,6 +43,15 @@ export default function App() {
 
   if (loading) return <div className="app-main">Loading...</div>;
   if (!session) return <Login />;
+  if (session.user.user_metadata?.must_change_password) {
+    return (
+      <ChangePassword
+        onDone={() => {
+          supabase.auth.getSession().then(({ data }) => setSession(data.session));
+        }}
+      />
+    );
+  }
 
   return (
     <RoleProvider session={session}>
