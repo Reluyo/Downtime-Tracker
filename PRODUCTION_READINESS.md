@@ -98,13 +98,19 @@ within first week, **P2** = backlog.
 
 ## Changes made in this pass
 
-- Raised the admin password minimum to 8 characters in `UsersPage.tsx` and
-  `ChangePassword.tsx`.
-- Added explicit request timeouts to the Supabase client config on both the
-  tablet (`supabase.dart`) and control center (`supabaseClient.ts`).
+- Raised the admin password minimum to 8 characters client-side
+  (`UsersPage.tsx`, `ChangePassword.tsx`) and server-side in the
+  `manage-users` edge function (the real enforcement point) — deployed live.
+- Added a 15s fetch timeout to the control-center Supabase client
+  (`supabaseClient.ts`) and a 15s `.timeout()` on every tablet network call
+  in `repository.dart` (`fetchAllLines`, `syncReferenceData`, `pushEvent`),
+  since neither SDK times out network calls by default.
 - Added a global Dart error handler (`runZonedGuarded` + `FlutterError.onError`)
-  in `tablet/lib/main.dart` so crashes are captured instead of silently
-  terminating the app.
+  in `tablet/lib/main.dart` that persists crashes to a local `crash_log.txt`
+  so a crash isn't silent and can be inspected after the fact.
+  **`flutter` is not installed in this environment — this was verified by
+  manual code review (brace/paren balance, correct API usage) only. Run
+  `flutter analyze` / a real build before trusting it in production.**
 
 Everything else in the P0/P1/P2 lists above requires a decision or
 infrastructure step (Supabase dashboard settings, hosting account access,

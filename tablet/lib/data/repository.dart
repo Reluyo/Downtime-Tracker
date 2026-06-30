@@ -27,7 +27,8 @@ class DowntimeRepository {
     return await supabase
         .from('lines')
         .select('id, name, short_name')
-        .order('name');
+        .order('name')
+        .timeout(const Duration(seconds: 15));
   }
 
   /// Persists the operator's line selection locally.
@@ -69,10 +70,13 @@ class DowntimeRepository {
   ///
   /// [lineId] — the Supabase line UUID to sync for.
   Future<void> syncReferenceData(String lineId) async {
+    const timeout = Duration(seconds: 15);
+
     final equipment = await supabase
         .from('equipment')
         .select('id, line_id, name, display_order, is_active')
-        .eq('line_id', lineId);
+        .eq('line_id', lineId)
+        .timeout(timeout);
 
     final equipmentIds = equipment.map((e) => e['id'] as String).toList();
 
@@ -83,13 +87,15 @@ class DowntimeRepository {
             .from('downtime_reasons')
             .select(
                 'id, equipment_id, label, requires_note, display_order, is_active')
-            .inFilter('equipment_id', equipmentIds);
+            .inFilter('equipment_id', equipmentIds)
+            .timeout(timeout);
 
     final config = await supabase
         .from('app_config')
         .select('line_id, alert_threshold_minutes, alert_repeat_minutes')
         .eq('line_id', lineId)
-        .maybeSingle();
+        .maybeSingle()
+        .timeout(timeout);
 
     await db.transaction(() async {
       await db.delete(db.cachedEquipment).go();
@@ -297,16 +303,19 @@ class DowntimeRepository {
   /// Note: duration_seconds is NOT sent — the server computes it from
   /// started_at and ended_at via a trigger (migration 003).
   Future<void> pushEvent(LocalEvent e) async {
-    await supabase.from('downtime_events').upsert({
-      'id': e.id,
-      'line_id': e.lineId,
-      'equipment_id': e.equipmentId,
-      'reason_id': e.reasonId,
-      'note': e.note,
-      'started_at': e.startedAt.toIso8601String(),
-      'ended_at': e.endedAt?.toIso8601String(),
-      'synced': true,
-    });
+    await supabase
+        .from('downtime_events')
+        .upsert({
+          'id': e.id,
+          'line_id': e.lineId,
+          'equipment_id': e.equipmentId,
+          'reason_id': e.reasonId,
+          'note': e.note,
+          'started_at': e.startedAt.toIso8601String(),
+          'ended_at': e.endedAt?.toIso8601String(),
+          'synced': true,
+        })
+        .timeout(const Duration(seconds: 15));
     await markSynced(e.id);
   }
 }
