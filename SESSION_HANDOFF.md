@@ -2,112 +2,87 @@
 
 ## Project Overview
 
-Manufacturing downtime tracking system for the **Piston Rod Sub Assembly 2 (PRSA 2)** line at Astemo. Two apps share a single Supabase backend:
+Manufacturing downtime tracking system for Astemo. Two apps share a single Supabase backend:
 
-- **Tablet App** (`/tablet`) — Flutter, operator-facing, deployed on Amazon Fire tablets
-- **Control Center** (`/control-center`) — React 18 / Vite / TypeScript, admin-facing
+- **Tablet App** (`/tablet`) — Flutter, operator-facing, deployed on shop-floor tablets
+- **Control Center** (`/control-center`) — React 18 / Vite / TypeScript, supervisor/admin-facing
 
-## Current State
+## Current State (as of 2026-06-30)
 
 ### Branch
-- **All work merged to `main`** — branch `claude/eloquent-sagan-w0t9ft` was merged
-- **Latest commit on main**: `0eee95f` — Fix role lookup via security definer RPC
+- **All work is on `main`**, pushed directly (no PR workflow currently in use for this work)
+- **Latest commit**: `afd0f29` — "Fix performance issues: duplicate open-events fetch, O(n^2) report render, tablet sync N+1 inserts, unbounded CSV export"
+- Commits `1a3eb7f`/`c2bd2a1`/`afd0f29` show as "Unverified" on GitHub — **cosmetic only**, caused by a missing git-signing key in this Claude Code environment (`/home/claude/.ssh/commit_signing_key.pub` is empty, `ssh-keygen` not installed). Does not affect functionality. No action needed unless the environment's signing setup gets fixed.
 
-### Supabase Backend
-- **Project ID**: `ktcdpogaxxmjdqhsmiev`
-- **Project name**: Downtime Tracker
-- **Region**: us-east-1
-- **Status**: ACTIVE_HEALTHY
-- **Schema**: 7 tables — `lines`, `equipment`, `downtime_reasons`, `downtime_events`, `app_config`, `user_roles`, `shifts`
-- **Migrations applied**: 001 through 009 (all applied to production)
-- **Edge Functions**: `manage-users` — admin user CRUD via service role key
-- **Auth**: Admin user `rolando.cruz.ag@astemo.com` (UUID: `be4c7a7e-c335-4d9d-b528-3fccfcf93c30`)
-- **RLS**: Anon can read config + insert/update events; admin role required for writes to reference tables; `is_admin()` security definer function for policy checks
-- **RPCs**: `downtime_by_equipment`, `downtime_by_reason`, `downtime_by_day`, `downtime_summary`, `open_events`, `is_admin`, `get_my_role`
-- **Seed data**: 1 line (PRSA 2), 7 equipment pieces + "Line Stop" virtual equipment, reason codes per spec + Line Stop reasons (No Material, No Operator, Meeting, Other), 22 sample events
+### Recent work this session (in order)
+1. **Full UX audit** of every control-center page and tablet screen (layout, spacing, color, hierarchy, error/loading states, a11y, responsiveness). Two independent review passes converged on the same top issues.
+2. **Implemented UX fixes** (commit `1a3eb7f`, merged via `c2bd2a1`):
+   - New `control-center/src/components/ConfirmDialog.tsx` — themed modal replacing native `confirm()`/`alert()` in EquipmentPage, ReasonsPage, LinesPage, UsersPage, HistoryPage
+   - HistoryPage: unified "Delete" button label to "Archive" (matched existing confirm copy)
+   - ReportsPage: CSV button labels disambiguated ("Export Raw Events CSV" vs "Export Summary CSV")
+   - `role="dialog"` / `aria-modal="true"` added to modals
+   - Tablet: fixed alert-threshold race condition in `active_downtime_screen.dart` (config-loaded gate before alert eligibility check), color-consistent destructive ("Discard") and positive ("Resolved") buttons, `Semantics` labels added to icon-only AppBar buttons in `home_screen.dart`
+   - **Explicitly NOT done**: weak password policy (`UsersPage.tsx` `minLength={6}`) — skipped per user instruction, still open
+3. **Full performance audit** of both apps (re-renders, Supabase query efficiency, duplicate calls, report generation, bundle size, loading strategy, tablet sync/caching).
+4. **Implemented performance fixes** (commit `afd0f29`):
+   - `HistoryPage.tsx` — decoupled open-events polling from the paginated event reload (was refetching open events on every filter/pagination change, not just on real changes)
+   - `ReportsPage.tsx` — hoisted `maxSeconds` calc out of the per-row render loop (was O(n²) per render)
+   - `tablet/lib/data/repository.dart` — batched equipment/reason inserts via Drift's `db.batch()`/`insertAll` instead of N sequential awaited inserts during reference-data sync
+   - `control-center/src/lib/api.ts` — `getAllEvents` (CSV export) now fetches in bounded 1000-row chunks via `.range()` instead of one unbounded request
 
-### Migrations Summary
+### Verification status
+- control-center: `npm run build` (tsc + vite) passes clean; all 19 Vitest tests pass
+- tablet: **`flutter` is not installed in this Claude Code environment** — Dart changes were verified by careful manual read (brace/paren balance, correct Drift API usage) but never run through `flutter analyze`/`flutter build`/a real device. **Run `flutter analyze` and a real build before trusting the tablet changes in production.**
 
-| # | Name | What it does |
-|---|------|-------------|
-| 001 | initial_schema | lines, equipment, downtime_reasons, downtime_events, app_config + RLS |
-| 002 | seed_data | PRSA 2 line, 7 equipment, reason codes, default config |
-| 003 | duration_trigger | Server-side duration_seconds computation trigger |
-| 004 | user_roles | user_roles table, is_admin() RPC, role-aware RLS policies |
-| 005 | tablet_line_selection | Tighten anon insert policy (valid line_id check) |
-| 006 | server_aggregation | Report RPCs (by equipment/reason/day/summary) |
-| 007 | shifts_softdelete_concurrency | shifts table, deleted_at + updated_at on events, updated RPCs, open_events RPC |
-| 008 | line_stop_equipment | "Line Stop" equipment + reason codes per line |
-| 009 | get_my_role_rpc | get_my_role() security definer RPC for role lookup |
+## What Needs Attention (open items)
 
-### Control Center (React)
-- **7 pages**: History, Equipment, Reason Codes, Configuration, Users, Reports
-- **Admin-only pages**: Equipment, Reason Codes, Configuration, Users (gated by `AdminRoute` + nav filtering)
-- **Users page**: Full CRUD — create users with email/password/role, edit role, reset password, delete users. Calls `manage-users` edge function.
-- **History page**: Real-time via Supabase Realtime, pagination, filters, "Currently Down" banner with live timers, inline edit modal with time validation (start < end, end not future), soft delete, optimistic concurrency
-- **Reports page**: By Equipment, By Reason, By Day tables with Pareto bar charts, CSV export per table + full export
-- **Config page**: Alert threshold/repeat settings + shift CRUD (name, start hour, end hour, display order)
-- **Auth flow**: Supabase Auth email/password → RoleProvider fetches role via `get_my_role()` RPC → admin/viewer routing
-- **CSS**: Astemo dark theme, CSS modules for page-specific styles
-- **Tests**: 19 Vitest tests passing (ErrorBoundary, RoleContext, format utils)
+1. **Run `flutter analyze` / build the tablet app** to confirm the Dart edits compile (alert-threshold fix, button color fixes, Semantics labels, batched inserts in `repository.dart`).
+2. **Weak password policy** (`UsersPage.tsx`, `minLength={6}`) — flagged in both UX audits as a real risk for an admin-gated industrial system. Not yet fixed — explicitly deferred.
+3. **Larger/open-ended redesign recommendations not yet implemented** (these were scoped out as "redesigns" not "fixes"):
+   - Responsive breakpoints for control-center (currently desktop-only, hardcoded px widths, no nav collapse)
+   - Drag-and-drop / arrow-button reordering instead of manual integer `display_order` fields (Equipment, Reasons, Shifts)
+   - Step-progress indicator on the tablet's multi-step `past_event_screen.dart` wizard
+   - Pause/resume alternative to discard-only on `reason_screen.dart`'s back-confirmation
+   - Persistent mute/unmute toggle on `active_downtime_screen.dart` (currently one-way mute)
+   - "Forgot password" self-service flow on Login
+4. **GitHub PAT used for pushing** — was pasted in plaintext in chat earlier this session and used directly for `git push` when the in-sandbox git relay returned 403. **Rotate/revoke this PAT** if it hasn't been already; it's exposed in the session transcript.
+5. **Git relay 403 issue** — pushing through the normal sandboxed git remote (`127.0.0.1:<port>/git/...`) returns 403 in this environment; a PAT-based direct push to `https://github.com/...` was used as a workaround. If a future session hits this again, same workaround applies, but the PAT should be short-lived/rotated.
 
-### Tablet App (Flutter)
-- **Screen flow**: Home → Active Downtime → Reason → Other Note (confirmation screen removed — direct to timer)
-- **New screens**: Log Past Event (multi-step: equipment → times → reason), Edit Last Event (change reason/note on most recent event)
-- **Alert system**: Configurable threshold + repeat interval, sound + haptic, mute button, "Still Down" / "Mute" / "Resolved" dialog
-- **Home screen**: Equipment grid, last event card with Edit button, sync indicator with last synced timestamp, "Log Past Event" button in app bar
-- **Sync**: Offline-first via Drift SQLite, auto-sync on connectivity change + 60s periodic, exponential backoff retry, last synced timestamp
-- **Repository**: startEvent, resolveEvent, discardEvent, createPastEvent, lastResolvedEvent, updateEventReason
+## Architecture Decisions (carried over, still accurate)
 
-## Architecture Decisions
-
-- **Role lookup**: Uses `get_my_role()` security definer RPC instead of direct `user_roles` table query. The RLS SELECT policy on `user_roles` had a self-referential subquery that caused silent failures; the RPC bypasses RLS entirely.
-- **User management**: Edge function (`manage-users`) because creating auth users requires the service role key, which can't be exposed to the browser. The function verifies the caller is admin before performing any operations.
-- **Soft delete**: `deleted_at` column on `downtime_events` instead of hard delete. All RPCs and queries filter `deleted_at IS NULL`.
-- **Optimistic concurrency**: `updated_at` column auto-set by trigger on every update. Edit modal passes `expectedUpdatedAt` to detect concurrent modifications.
-- **Tablet auth**: No authentication (anonymous access via anon key). Intentional — no login friction for operators. RLS restricts anon to read config + insert/update events only.
-
-## What's Working
-- Control center builds cleanly (`npm run build`, `tsc -b` pass)
-- All 19 tests pass
-- All migrations applied to production Supabase
-- Edge function deployed and active
-- Admin role assigned to rolando.cruz.ag@astemo.com
-- Role lookup works via security definer RPC
-
-## What Needs Attention
-
-1. **Test the control center in browser** — Verify the Users page works end-to-end (create user, change role, reset password, delete)
-2. **Run Drift codegen** — `cd tablet && dart run build_runner build --delete-conflicting-outputs` (generates `database.g.dart` needed for compile)
-3. **Deploy control center** — Vercel or similar. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` env vars.
-4. **Flutter build + device test** — All screens implemented but not tested on a real device
-5. **Revoke GitHub PAT** — The PAT used for pushing in this session should be rotated immediately.
+- **Role lookup**: `get_my_role()` security definer RPC (bypasses RLS self-reference issue on `user_roles`)
+- **User management**: `manage-users` edge function (needs service role key, can't be in browser)
+- **Soft delete**: `deleted_at` column on `downtime_events`, all queries/RPCs filter `deleted_at IS NULL`
+- **Optimistic concurrency**: `updated_at` trigger + `expectedUpdatedAt` check in edit modal
+- **Tablet auth**: anonymous (anon key), no operator login by design; RLS restricts anon to config-read + event insert/update
+- **Reports**: aggregation happens server-side via Postgres RPCs (`downtime_by_equipment`, `downtime_by_reason`, `downtime_by_day`, `downtime_summary`), not client-side reduction — confirmed good during perf audit
+- **Realtime**: HistoryPage subscribes scoped to `line_id=eq.<id>` filter, not the whole table — confirmed good during perf audit
 
 ## Environment Notes
-- Git push requires a GitHub PAT — the proxy blocks direct git operations. Set remote URL temporarily: `git remote set-url origin https://<PAT>@github.com/reluyo/Downtime-Tracker.git`, push, then reset.
-- Supabase MCP tools work for SQL and admin operations from the sandbox.
-- Chromium + Playwright pre-installed for browser testing.
+- Git push through the sandbox relay can return 403 depending on org egress policy; a GitHub PAT pushed directly to `https://github.com/<owner>/<repo>.git` is the fallback (rotate the PAT after use)
+- `flutter`/`dart` CLI is **not installed** in this Claude Code environment — Dart/Flutter changes can only be verified by manual code review here, not compiled. Verify on a machine with Flutter installed, or rely on CI if one exists.
+- Supabase MCP tools available for SQL/admin operations
+- Chromium + Playwright pre-installed for control-center browser testing
 
 ## Key Files
 
 | File | Purpose |
 |---|---|
 | `PRODUCT_SPEC.md` | Full product specification |
-| `control-center/src/lib/api.ts` | All Supabase API calls + user management |
+| `control-center/src/lib/api.ts` | All Supabase API calls (incl. chunked `getAllEvents` for CSV export) |
 | `control-center/src/lib/supabaseClient.ts` | Typed Supabase client |
-| `control-center/src/lib/RoleContext.tsx` | Role provider (admin/viewer) |
-| `control-center/src/types/database.types.ts` | Supabase generated types (manually updated) |
+| `control-center/src/lib/RoleContext.tsx` / `LineContext.tsx` | Role/line providers |
+| `control-center/src/components/ConfirmDialog.tsx` | New themed confirm modal (replaces native `confirm()`) |
 | `control-center/src/App.tsx` | Router + auth gate + admin route guard |
 | `control-center/src/components/Layout.tsx` | App shell (header, nav, outlet) |
-| `control-center/src/pages/UsersPage.tsx` | User management CRUD page |
-| `control-center/src/pages/HistoryPage.tsx` | Event history + currently-down banner |
-| `control-center/src/pages/ReportsPage.tsx` | Reports with bar charts |
+| `control-center/src/pages/UsersPage.tsx` | User management CRUD — **password policy still weak, unfixed** |
+| `control-center/src/pages/HistoryPage.tsx` | Event history, currently-down banner, decoupled open-events polling |
+| `control-center/src/pages/ReportsPage.tsx` | Reports with bar charts, memoized max-seconds calc |
 | `control-center/src/pages/ConfigPage.tsx` | Alert config + shift CRUD |
-| `supabase/functions/manage-users/index.ts` | Edge function for user CRUD |
-| `supabase/migrations/` | All 9 database migrations |
-| `tablet/lib/data/repository.dart` | Data access layer (Drift + Supabase) |
-| `tablet/lib/services/sync_service.dart` | Offline sync engine |
-| `tablet/lib/ui/home_screen.dart` | Operator home screen |
-| `tablet/lib/ui/active_downtime_screen.dart` | Timer + alert screen |
-| `tablet/lib/ui/past_event_screen.dart` | Retroactive event entry |
+| `tablet/lib/data/repository.dart` | Data access layer (Drift + Supabase), batched reference-data sync |
+| `tablet/lib/services/sync_service.dart` | Offline sync engine (60s periodic + connectivity-triggered) |
+| `tablet/lib/ui/home_screen.dart` | Operator home screen, Semantics-labeled icon buttons |
+| `tablet/lib/ui/active_downtime_screen.dart` | Timer + alert screen, fixed config-load race condition |
+| `tablet/lib/ui/reason_screen.dart` | Reason selection, color-consistent discard dialog |
+| `tablet/lib/ui/past_event_screen.dart` | Retroactive event entry (multi-step, no progress indicator) |
 | `tablet/lib/ui/edit_event_screen.dart` | Edit last event reason/note |
