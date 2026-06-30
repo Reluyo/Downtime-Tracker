@@ -92,7 +92,7 @@ export default function ReportsPage() {
       ]);
       downloadCsv(`downtime-${startDate}-to-${endDate}.csv`, headers, rows);
     } catch (e) {
-      alert(`Export failed: ${e instanceof Error ? e.message : e}`);
+      setError(`Export failed: ${e instanceof Error ? e.message : e}`);
     } finally {
       setExporting(false);
     }
@@ -118,7 +118,7 @@ export default function ReportsPage() {
           onClick={exportAll}
           disabled={exporting || summary.event_count === 0}
         >
-          {exporting ? 'Exporting...' : 'Export CSV'}
+          {exporting ? 'Exporting...' : 'Export Raw Events CSV'}
         </button>
       </div>
 
@@ -199,7 +199,7 @@ function ReportTable({ title, rows, showBars, lineName }: { title: string; rows:
       <div className={styles.reportCardHeader}>
         <h3>{title}</h3>
         <button className="btn-link-dark" onClick={exportTable} disabled={rows.length === 0}>
-          CSV
+          Export Summary CSV
         </button>
       </div>
       <table className="data-table compact">

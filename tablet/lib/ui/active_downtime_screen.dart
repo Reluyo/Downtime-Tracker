@@ -42,6 +42,7 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
   bool _alerting = false;
   bool _muted = false;
   bool _configLoaded = false;
+  bool _configLoadStarted = false;
 
   @override
   void initState() {
@@ -54,19 +55,22 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_configLoaded) {
-      _configLoaded = true;
+    if (!_configLoadStarted) {
+      _configLoadStarted = true;
       _loadConfig();
     }
   }
 
   Future<void> _loadConfig() async {
     final cfg = await ServiceProvider.of(context).repository.config();
-    if (cfg == null || !mounted) return;
+    if (!mounted) return;
     setState(() {
-      _thresholdSeconds = cfg.alertThresholdMinutes * 60;
-      _repeatSeconds = cfg.alertRepeatMinutes * 60;
-      _nextAlertAtSeconds = _thresholdSeconds;
+      if (cfg != null) {
+        _thresholdSeconds = cfg.alertThresholdMinutes * 60;
+        _repeatSeconds = cfg.alertRepeatMinutes * 60;
+        _nextAlertAtSeconds = _thresholdSeconds;
+      }
+      _configLoaded = true;
     });
   }
 
@@ -75,7 +79,7 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
     setState(() {
       _elapsed = DateTime.now().toUtc().difference(widget.event.startedAt);
     });
-    if (!_alerting && _elapsed.inSeconds >= _nextAlertAtSeconds) {
+    if (_configLoaded && !_alerting && _elapsed.inSeconds >= _nextAlertAtSeconds) {
       _triggerAlert();
     }
   }
@@ -108,7 +112,11 @@ class _ActiveDowntimeScreenState extends State<ActiveDowntimeScreen> {
               onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text('Mute', style: TextStyle(fontSize: 18)),
             ),
-          FilledButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AstemoColors.ok,
+              foregroundColor: AstemoColors.black,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Resolved', style: TextStyle(fontSize: 18)),
           ),
