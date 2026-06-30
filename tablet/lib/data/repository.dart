@@ -312,8 +312,12 @@ class DowntimeRepository {
           'equipment_id': e.equipmentId,
           'reason_id': e.reasonId,
           'note': e.note,
-          'started_at': e.startedAt.toIso8601String(),
-          'ended_at': e.endedAt?.toIso8601String(),
+          // Drift reads timestamps back from sqlite as local DateTimes (the
+          // underlying instant is correct, but toIso8601String() on a local
+          // value omits the UTC "Z" suffix). Force toUtc() first so Postgres
+          // doesn't misinterpret the wall-clock string as already being UTC.
+          'started_at': e.startedAt.toUtc().toIso8601String(),
+          'ended_at': e.endedAt?.toUtc().toIso8601String(),
           'synced': true,
         })
         .timeout(const Duration(seconds: 15));
