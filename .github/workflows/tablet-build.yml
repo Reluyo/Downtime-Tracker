@@ -38,10 +38,18 @@ jobs:
           cache: true
 
       - name: Generate Android platform files
-        run: flutter create --platforms=android --project-name prsa_tablet .
+        run: flutter create --platforms=android --project-name astemo_downtime_tracker .
 
       - name: Restore pubspec.yaml
         run: git checkout pubspec.yaml
+
+      - name: Set app name and grant internet permission
+        run: |
+          sed -i 's/android:label="[^"]*"/android:label="Astemo Downtime Tracker"/' android/app/src/main/AndroidManifest.xml
+          if ! grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml; then
+            sed -i '/<manifest /a\    <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
+          fi
+          cat android/app/src/main/AndroidManifest.xml
 
       - name: Write .env
         run: |
