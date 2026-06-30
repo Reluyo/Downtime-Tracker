@@ -91,7 +91,6 @@ export default function HistoryPage() {
       );
       setEvents(result.rows);
       setTotalCount(result.totalCount);
-      getOpenEvents(line.id).then(setOpenEvents).catch(() => setOpenEvents([]));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -99,9 +98,20 @@ export default function HistoryPage() {
     }
   }, [line, startDate, endDate, equipmentId, reasonId, page]);
 
+  const loadOpenEvents = useCallback(() => {
+    if (!line) return;
+    getOpenEvents(line.id).then(setOpenEvents).catch(() => setOpenEvents([]));
+  }, [line]);
+
   useEffect(() => {
     load();
   }, [load]);
+
+  // Open events only need to be refreshed on mount/line change and on
+  // realtime updates, not on every filter/pagination reload of the table.
+  useEffect(() => {
+    loadOpenEvents();
+  }, [loadOpenEvents]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -122,8 +132,9 @@ export default function HistoryPage() {
           filter: `line_id=eq.${line.id}`,
         },
         () => {
-          // Refresh the list on any change
+          // Refresh the list and open-events banner on any change
           load();
+          loadOpenEvents();
         },
       )
       .subscribe((status) => {
@@ -133,7 +144,7 @@ export default function HistoryPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [line, load]);
+  }, [line, load, loadOpenEvents]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE));
 

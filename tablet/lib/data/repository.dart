@@ -96,25 +96,37 @@ class DowntimeRepository {
       await db.delete(db.cachedReasons).go();
       await db.delete(db.cachedConfig).go();
 
-      for (final e in equipment) {
-        await db.into(db.cachedEquipment).insert(CachedEquipmentCompanion.insert(
-              id: e['id'] as String,
-              lineId: e['line_id'] as String,
-              name: e['name'] as String,
-              displayOrder: Value(e['display_order'] as int? ?? 0),
-              isActive: Value(e['is_active'] as bool? ?? true),
-            ));
+      // Batched instead of one insert per row — avoids N sequential awaited
+      // round-trips to the local SQLite engine on every sync cycle.
+      if (equipment.isNotEmpty) {
+        await db.batch((b) {
+          b.insertAll(
+            db.cachedEquipment,
+            equipment.map((e) => CachedEquipmentCompanion.insert(
+                  id: e['id'] as String,
+                  lineId: e['line_id'] as String,
+                  name: e['name'] as String,
+                  displayOrder: Value(e['display_order'] as int? ?? 0),
+                  isActive: Value(e['is_active'] as bool? ?? true),
+                )),
+          );
+        });
       }
 
-      for (final r in reasons) {
-        await db.into(db.cachedReasons).insert(CachedReasonsCompanion.insert(
-              id: r['id'] as String,
-              equipmentId: r['equipment_id'] as String,
-              label: r['label'] as String,
-              requiresNote: Value(r['requires_note'] as bool? ?? false),
-              displayOrder: Value(r['display_order'] as int? ?? 0),
-              isActive: Value(r['is_active'] as bool? ?? true),
-            ));
+      if (reasons.isNotEmpty) {
+        await db.batch((b) {
+          b.insertAll(
+            db.cachedReasons,
+            reasons.map((r) => CachedReasonsCompanion.insert(
+                  id: r['id'] as String,
+                  equipmentId: r['equipment_id'] as String,
+                  label: r['label'] as String,
+                  requiresNote: Value(r['requires_note'] as bool? ?? false),
+                  displayOrder: Value(r['display_order'] as int? ?? 0),
+                  isActive: Value(r['is_active'] as bool? ?? true),
+                )),
+          );
+        });
       }
 
       await db.into(db.cachedConfig).insert(CachedConfigCompanion.insert(

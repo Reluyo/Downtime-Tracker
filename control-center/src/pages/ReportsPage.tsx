@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLine } from '../lib/LineContext';
 import {
   getAllEvents,
@@ -181,6 +181,10 @@ interface TableRow {
 
 function ReportTable({ title, rows, showBars, lineName }: { title: string; rows: TableRow[]; showBars?: boolean; lineName: string }) {
   const columnName = title.replace('By ', '');
+  const maxSeconds = useMemo(
+    () => Math.max(...rows.map((r) => r.totalSeconds), 1),
+    [rows],
+  );
 
   function exportTable() {
     const headers = ['Line', columnName, 'Events', 'Downtime (s)', 'Downtime'];
@@ -219,7 +223,6 @@ function ReportTable({ title, rows, showBars, lineName }: { title: string; rows:
             </tr>
           )}
           {rows.map((b) => {
-            const maxSeconds = Math.max(...rows.map((r) => r.totalSeconds), 1);
             const pct = (b.totalSeconds / maxSeconds) * 100;
             return (
               <tr key={b.key}>

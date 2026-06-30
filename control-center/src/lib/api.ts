@@ -258,21 +258,41 @@ export async function getEvents(
   };
 }
 
-/** Fetch ALL events matching filters (no pagination). Used for CSV export. */
+const EXPORT_CHUNK_SIZE = 1000;
+
+/**
+ * Fetch ALL events matching filters (no pagination). Used for CSV export.
+ * Fetched in bounded chunks via `.range()` rather than one unbounded
+ * request, so a large date range doesn't materialize a single huge
+ * Supabase response in memory.
+ */
 export async function getAllEvents(filters: EventFilters): Promise<DowntimeEventRow[]> {
-  let query = supabase
-    .from('downtime_events')
-    .select(EVENT_SELECT)
-    .eq('line_id', filters.lineId)
-    .is('deleted_at', null)
-    .order('started_at', { ascending: false });
+  const rows: DowntimeEventRow[] = [];
+  let from = 0;
 
-  query = applyEventFilters(query, filters);
+  for (;;) {
+    const to = from + EXPORT_CHUNK_SIZE - 1;
+    let query = supabase
+      .from('downtime_events')
+      .select(EVENT_SELECT)
+      .eq('line_id', filters.lineId)
+      .is('deleted_at', null)
+      .order('started_at', { ascending: false })
+      .range(from, to);
 
-  const { data, error } = await query;
-  if (error) throw error;
+    query = applyEventFilters(query, filters);
 
-  return mapEventRows((data ?? []) as unknown as Record<string, unknown>[]);
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const chunk = mapEventRows((data ?? []) as unknown as Record<string, unknown>[]);
+    rows.push(...chunk);
+
+    if (chunk.length < EXPORT_CHUNK_SIZE) break;
+    from += EXPORT_CHUNK_SIZE;
+  }
+
+  return rows;
 }
 
 /** Update event — duration_seconds is omitted because the server trigger computes it.
