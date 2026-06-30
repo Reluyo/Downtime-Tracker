@@ -12,7 +12,7 @@ name: Build Tablet APK
 
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
     paths:
       - "tablet/**"
       - ".github/workflows/tablet-build.yml"
