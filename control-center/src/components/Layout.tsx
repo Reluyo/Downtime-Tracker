@@ -7,7 +7,6 @@ import { useRole } from '../lib/RoleContext';
 import AstemoLogo from './AstemoLogo';
 import ErrorBoundary from './ErrorBoundary';
 import {
-  IconBell,
   IconDashboard,
   IconEquipment,
   IconHistory,
@@ -32,7 +31,6 @@ const NAV: {
   { to: '/equipment', label: 'Equipment', Icon: IconEquipment, adminOnly: true },
   { to: '/reasons', label: 'Reason Codes', Icon: IconTag, adminOnly: true },
   { to: '/config', label: 'Configuration', Icon: IconSliders, adminOnly: true },
-  { to: '/notifications', label: 'Notifications', Icon: IconBell, adminOnly: true },
   { to: '/users', label: 'Users', Icon: IconUsers, adminOnly: true },
   { to: '/reports', label: 'Reports', Icon: IconReports },
 ];
