@@ -10,10 +10,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
 /**
  * Shared Supabase client for the control center.
  * Admins authenticate against this client via Supabase Auth; all data access
  * is governed by the Row Level Security policies defined in
  * supabase/migrations/001_initial_schema.sql.
+ *
+ * A fetch timeout is set so a hung network request can't block the UI
+ * indefinitely — without it the underlying fetch has no default timeout.
  */
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: fetchWithTimeout },
+});

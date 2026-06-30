@@ -110,8 +110,8 @@ export default function UsersPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="min 6 chars"
-            minLength={6}
+            placeholder="min 12 chars"
+            minLength={12}
             required
           />
         </label>
@@ -192,8 +192,9 @@ function UserRow({ user, onChanged }: { user: ManagedUser; onChanged: () => void
             type="password"
             value={newPassword}
             onChange={(e) => { setNewPassword(e.target.value); setSaved(false); }}
-            placeholder="new…"
-            style={{ width: 80 }}
+            placeholder="new (min 12)…"
+            minLength={12}
+            style={{ width: 100 }}
           />
         </td>
         <td className="actions">

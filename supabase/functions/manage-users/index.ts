@@ -99,6 +99,16 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      if (password.length < 12) {
+        return new Response(
+          JSON.stringify({ error: "Password must be at least 12 characters" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
       const { data: newUser, error: createErr } = await admin.createUser({
         email,
         password,
@@ -144,6 +154,15 @@ Deno.serve(async (req: Request) => {
       }
 
       if (password) {
+        if (password.length < 12) {
+          return new Response(
+            JSON.stringify({ error: "Password must be at least 12 characters" }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
         const { error: updateErr } = await admin.updateUserById(user_id, {
           password,
           user_metadata: { must_change_password: true },
