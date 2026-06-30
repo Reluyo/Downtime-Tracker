@@ -20,6 +20,9 @@ export type Database = {
           alert_threshold_minutes: number
           id: string
           line_id: string
+          notify_enabled: boolean
+          notify_threshold_minutes: number
+          notify_emails: string[]
           updated_at: string
         }
         Insert: {
@@ -27,6 +30,9 @@ export type Database = {
           alert_threshold_minutes?: number
           id?: string
           line_id: string
+          notify_enabled?: boolean
+          notify_threshold_minutes?: number
+          notify_emails?: string[]
           updated_at?: string
         }
         Update: {
@@ -34,6 +40,9 @@ export type Database = {
           alert_threshold_minutes?: number
           id?: string
           line_id?: string
+          notify_enabled?: boolean
+          notify_threshold_minutes?: number
+          notify_emails?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -245,6 +254,56 @@ export type Database = {
           },
         ]
       }
+      global_notification_emails: {
+        Row: {
+          id: string
+          email: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          id: string
+          event_id: string
+          line_id: string
+          notified_at: string
+          recipients: string[]
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          line_id: string
+          notified_at?: string
+          recipients: string[]
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          line_id?: string
+          notified_at?: string
+          recipients?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "downtime_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           user_id: string
@@ -327,6 +386,18 @@ export type Database = {
           equipment_id: string
           equipment_name: string
           started_at: string
+        }[]
+      }
+      line_availability: {
+        Args: {
+          p_line_id: string
+          p_start: string
+          p_end: string
+        }
+        Returns: {
+          planned_seconds: number
+          downtime_seconds: number
+          availability_pct: number | null
         }[]
       }
       get_my_role: {

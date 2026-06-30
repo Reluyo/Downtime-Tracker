@@ -651,6 +651,112 @@ section > h2 {
   color: var(--text);
 }
 
+/* ===== Dashboard ===== */
+.dashboard-summary {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0 32px;
+  flex-wrap: wrap;
+}
+.summary-card {
+  flex: 1 1 200px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--text-faint);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.summary-card-ok { border-left-color: var(--ok); }
+.summary-card-warn { border-left-color: var(--warn); }
+.summary-card-danger { border-left-color: var(--crit); }
+.summary-card-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.summary-card-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.equipment-card {
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+}
+.equipment-card-up {
+  background: var(--panel);
+}
+.equipment-card-down {
+  background: color-mix(in srgb, var(--crit) 16%, var(--panel));
+  border-color: var(--crit);
+}
+.equipment-card-status {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.equipment-card-down .equipment-card-status {
+  color: var(--crit);
+  font-weight: 600;
+}
+.equipment-card-name {
+  font-weight: 600;
+}
+.equipment-card-duration {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  color: var(--crit);
+}
+
+.reason-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 640px;
+}
+.reason-bar-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 90px;
+  align-items: center;
+  gap: 10px;
+}
+.reason-bar-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reason-bar-track {
+  background: var(--panel-2);
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+}
+.reason-bar-fill {
+  background: var(--primary);
+  height: 100%;
+}
+.reason-bar-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
 /* ===== Motion ===== */
 @keyframes pulse {
   0%,
