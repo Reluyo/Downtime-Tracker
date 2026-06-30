@@ -54,11 +54,10 @@ ThemeData astemoDarkTheme() {
         fontWeight: FontWeight.w600,
       ),
     ),
-    // Large, high-contrast touch targets for the production floor. Default
-    // (non-coloured) buttons use an elevated neutral surface with white text.
+    // Large, high-contrast touch targets for the production floor.
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AstemoColors.surfaceElevated,
+        backgroundColor: AstemoColors.red,
         foregroundColor: AstemoColors.white,
         minimumSize: const Size(160, 96),
         textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
